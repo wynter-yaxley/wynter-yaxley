@@ -8,6 +8,9 @@ fonts a visitor has installed. The fonts themselves are not kept here:
 
 DIR must hold NotoSansSC-VF.ttf, EBGaramond.ttf and EBGaramond-Italic.ttf
 (the variable builds from Google Fonts, SIL Open Font License).
+
+One warm family throughout: ivory paper, oat and clay for the flat shapes,
+warm ink for type and for the loose line drawn over them.
 """
 import argparse
 import math
@@ -19,20 +22,13 @@ from fontTools.ttLib import TTFont
 
 OUT = Path(__file__).resolve().parent.parent / 'assets'
 
-# Morandi tones: each has a mid value and a pale ground to sit on.
 LIGHT = dict(
-    bg0='#F4F1EC', bg1='#ECEEEA', edge='#E2DED6',
-    ink='#3A3D3B', ink2='#5E625F', ink3='#8E918C', on_tile='#FBFAF7',
-    sage='#A9B8A5', sage_bg='#E6EBE4', blue='#A3B2BF', blue_bg='#E4E9ED',
-    rose='#CDAEA7', rose_bg='#F2E7E3', sand='#D9C7A3', sand_bg='#F1EBDD',
-    mauve='#B3A5B9', mauve_bg='#ECE7EE', stone='#B8B3AA', stone_bg='#ECE9E4',
+    paper='#F5F1EA', edge='#E6DFD3', ink='#2F2A25', ink2='#5F574E', ink3='#978E82',
+    oat='#E4D9C6', clay='#C79079', clay_soft='#EBD2C4',
 )
 DARK = dict(
-    bg0='#222426', bg1='#1E2120', edge='#30343A',
-    ink='#E6E3DD', ink2='#B9B6AF', ink3='#85847F', on_tile='#1F2123',
-    sage='#7D8C79', sage_bg='#252A25', blue='#788795', blue_bg='#232A30',
-    rose='#9A7F79', rose_bg='#2D2625', sand='#A3936F', sand_bg='#2C2922',
-    mauve='#8A7D90', mauve_bg='#29252B', stone='#8C877F', stone_bg='#292826',
+    paper='#22201D', edge='#36322C', ink='#EDE7DD', ink2='#BFB6A8', ink3='#877F73',
+    oat='#3B352D', clay='#B9846C', clay_soft='#4A3B32',
 )
 
 def num(v):
@@ -204,9 +200,9 @@ def svg(w, h, body, title, desc):
 '''
 
 
-def catmull_rom(ctrl, steps=24):
+def catmull_rom(ctrl, steps=24, closed=False):
     """Centripetal Catmull-Rom through ctrl; no cusps, no overshoot."""
-    ctrl = [ctrl[0]] + ctrl + [ctrl[-1]]
+    ctrl = ctrl[-1:] + ctrl + ctrl[:2] if closed else [ctrl[0]] + ctrl + [ctrl[-1]]
     out = []
     for i in range(1, len(ctrl) - 2):
         p = ctrl[i - 1:i + 3]
@@ -222,34 +218,55 @@ def catmull_rom(ctrl, steps=24):
             a1, a2, a3 = (lerp(p[j], p[j + 1], t[j], t[j + 1]) for j in range(3))
             b1, b2 = lerp(a1, a2, t[0], t[2]), lerp(a2, a3, t[1], t[3])
             out.append(lerp(b1, b2, t[1], t[2]))
-    out.append(ctrl[-2])
+    if not closed:
+        out.append(ctrl[-2])
     return out
+
+
+# ---------------------------------------------------------------- drawing
+
+def points(pts):
+    return 'L'.join(f'{x:.1f} {y:.1f}' for x, y in pts)
+
+
+def blob(cx, cy, r, bumps, turn=0.0):
+    """A soft, uneven round shape: one radius factor per evenly spaced point."""
+    n = len(bumps)
+    p = [(cx + r * b * math.cos(turn + 2 * math.pi * i / n), cy + r * b * math.sin(turn + 2 * math.pi * i / n))
+         for i, b in enumerate(bumps)]
+    return 'M' + points(catmull_rom(p, closed=True)) + 'Z'
+
+
+def stroke(d, pal, w=2.2, color='ink'):
+    return (f'<path d="{d}" fill="none" stroke="{pal[color]}" stroke-width="{w}" '
+            f'stroke-linecap="round" stroke-linejoin="round"/>')
+
+
+def sparkle(x, y, r):
+    return (f'M{x} {y - r}Q{x} {y} {x + r} {y}Q{x} {y} {x} {y + r}'
+            f'Q{x} {y} {x - r} {y}Q{x} {y} {x} {y - r}Z')
 
 
 # ---------------------------------------------------------------- header
 
 def header(F, pal):
     w, h = 1000, 300
-    # a loose line that wanders through the shapes and stops at the small dot
-    ctrl = [(548, 252), (604, 238), (668, 214), (700, 188), (690, 166), (668, 174),
-            (676, 200), (728, 208), (800, 176), (868, 120), (918, 88)]
-    line = 'M' + 'L'.join(f'{x:.1f} {y:.1f}' for x, y in catmull_rom(ctrl))
-    body = [
-        f'<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">'
-        f'<stop stop-color="{pal["bg0"]}"/><stop offset="1" stop-color="{pal["bg1"]}"/></linearGradient>'
-        f'<clipPath id="clip"><rect width="{w}" height="{h}" rx="16"/></clipPath></defs>',
-        '<g clip-path="url(#clip)">',
-        f'<rect width="{w}" height="{h}" fill="url(#bg)"/>',
-        f'<circle cx="806" cy="170" r="112" fill="{pal["sage"]}" opacity=".75"/>',
-        f'<rect x="616" y="56" width="148" height="148" rx="30" fill="{pal["blue"]}" opacity=".72" '
-        f'transform="rotate(-12 690 130)"/>',
-        f'<path d="M838 300a76 76 0 0 1 152 0z" fill="{pal["rose"]}" opacity=".85"/>',
-        f'<circle cx="652" cy="250" r="28" fill="{pal["sand"]}" opacity=".9"/>',
-        f'<circle cx="928" cy="80" r="10" fill="{pal["mauve"]}"/>',
-        f'<path d="{line}" fill="none" stroke="{pal["ink2"]}" stroke-width="1.6" stroke-linecap="round" '
-        f'stroke-linejoin="round"/>',
+    # a line that wanders, turns once on itself, and ends in a small spark
+    walk = catmull_rom([(606, 252), (660, 236), (706, 210), (722, 182), (704, 166), (686, 180),
+                        (700, 206), (754, 214), (816, 176), (862, 130), (884, 112)])
+    art = [
+        f'<path d="{blob(812, 158, 116, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" fill="{pal["oat"]}"/>',
+        f'<path d="{blob(690, 214, 56, [1, .9, 1.07, .95, 1.03, .93], .8)}" fill="{pal["clay_soft"]}"/>',
+        '<g>',
+        stroke('M' + points(walk), pal),
+        stroke(sparkle(900, 98, 17), pal, 2),
+        stroke('M928 70l7-7M934 96h10M918 126l5 6', pal, 1.8),
         '</g>',
-        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="16" fill="none" stroke="{pal["edge"]}"/>',
+        f'<circle cx="884" cy="112" r="4.5" fill="{pal["clay"]}"/>',
+    ]
+    body = [
+        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="16" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
+        *art,
         text([(F['cn'], '你好，我是')], 18, 64, 96, pal['ink2'], track=0.12),
         text([(F['name'], 'Wynter Yaxley')], 64, 60, 166, pal['ink']),
         text([(F['cn'], '兴之所至，信手为之。')], 20, 64, 214, pal['ink2'], track=0.1),
@@ -261,73 +278,67 @@ def header(F, pal):
 
 # ---------------------------------------------------------------- cards
 
-def icon_bridge(c):
-    return (f'<path d="M46 68Q60 42 74 68" fill="none" stroke="{c}" stroke-width="2.4" stroke-linecap="round"/>'
-            f'<circle cx="46" cy="68" r="4.2" fill="{c}"/><circle cx="74" cy="68" r="4.2" fill="{c}"/>')
+def art_bridge(pal):
+    return [
+        f'<path d="{blob(84, 62, 40, [1, .92, 1.06, .96, 1.02, .9], .4)}" fill="{pal["oat"]}"/>',
+        '<g>',
+        stroke('M36 90H134', pal, 1.8),
+        stroke('M60 90A25 25 0 0 1 110 90', pal),
+        stroke('M40 86C60 86 66 52 85 52S110 86 130 86', pal),
+        stroke('M66 102h20M94 110h14', pal, 1.6),
+        '</g>',
+        f'<circle cx="101" cy="58.5" r="4.2" fill="{pal["clay"]}"/>',
+    ]
 
 
-def icon_calendar(c):
-    return (f'<g fill="none" stroke="{c}" stroke-width="2.2" stroke-linecap="round">'
-            f'<rect x="44" y="46" width="32" height="29" rx="5"/><path d="M44 55H76M53 41v8M67 41v8"/></g>'
-            f'<rect x="61" y="62" width="8" height="7" rx="1.6" fill="{c}"/>')
+def art_calendar(pal):
+    return [
+        f'<path d="{blob(82, 64, 38, [1, .95, 1.05, .9, 1.04, .94], 1.1)}" fill="{pal["clay_soft"]}"/>',
+        '<g transform="rotate(-6 80 66)">',
+        stroke('M52 42H108Q114 42 114 48V90Q114 96 108 96H52Q46 96 46 90V48Q46 42 52 42Z', pal),
+        stroke('M46 56H114M62 34v14M98 34v14', pal),
+        *[f'<circle cx="{x}" cy="{y}" r="2.4" fill="{pal["ink"]}"/>'
+          for x in (62, 80) for y in (70, 84)],
+        stroke('M98 72a9 9 0 1 1-1-.5', pal, 1.8),
+        '</g>',
+        f'<circle cx="97.5" cy="80.5" r="3.4" fill="{pal["clay"]}"/>',
+    ]
 
 
-def motif_arcs(tone):
-    """Ripples of a bridge, low in the corner."""
-    return ''.join(f'<circle cx="472" cy="330" r="{r}" fill="none" stroke="{tone}" stroke-width="1.4" '
-                   f'opacity="{o}"/>' for r, o in ((56, .5), (88, .35), (120, .22)))
-
-
-def motif_grid(tone):
-    """A corner of a timetable, a few slots taken."""
-    out = []
-    for i in range(5):
-        for j in range(3):
-            taken = (i * 3 + j * 5) % 4 == 0
-            out.append(f'<rect x="{364 + i * 30}" y="{236 + j * 30}" width="22" height="22" rx="5" '
-                       f'fill="{tone}" opacity="{.42 if taken else .16}"/>')
-    return ''.join(out)
-
-
-def card(F, pal, tone, icon, motif, repo, cn, en, lang, tags, desc, shift):
+def card(F, pal, art, repo, cn, en, lang, tags, desc, shift):
     # the gutter between the two cards is drawn into them, so the README needs no spacing
     w, h, gutter = 500, 300, 10
     for runs, size, what in (([(F['cn'], cn)], 17, cn), ([(F['en'], en)], 14.5, en)):
         fits(runs, size, w - 64, what)
-    tag_x = 52 + width([(F['label'], lang)], 14) + 18
+    tag_x = 48 + width([(F['label'], lang)], 14) + 16
     body = [
-        f'<defs><clipPath id="clip"><rect width="{w}" height="{h}" rx="16"/></clipPath></defs>',
         f'<g transform="translate({gutter * shift} 0)">',
-        '<g clip-path="url(#clip)">',
-        f'<rect width="{w}" height="{h}" fill="{pal[tone + "_bg"]}"/>',
-        motif(pal[tone]),
-        '</g>',
-        f'<rect x="32" y="32" width="56" height="56" rx="15" fill="{pal[tone]}"/>',
-        icon(pal['on_tile']),
+        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="16" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
+        *art(pal),
         f'<path d="M452 46L466 32M455 32H466V43" fill="none" stroke="{pal["ink3"]}" stroke-width="1.7" '
         f'stroke-linecap="round" stroke-linejoin="round"/>',
-        text([(F['title'], repo)], 26, 32, 146, pal['ink']),
-        text([(F['cn'], cn)], 17, 32, 188, pal['ink2'], track=0.03),
-        text([(F['en'], en)], 14.5, 32, 216, pal['ink3']),
-        f'<circle cx="38" cy="262" r="5.5" fill="{pal[tone]}"/>',
-        text([(F['label'], lang)], 14, 52, 267, pal['ink2']),
-        text([(F['en'], tags)], 14, tag_x, 267, pal['ink3']),
+        text([(F['title'], repo)], 26, 32, 160, pal['ink']),
+        text([(F['cn'], cn)], 17, 32, 200, pal['ink2'], track=0.03),
+        text([(F['en'], en)], 14.5, 32, 228, pal['ink3']),
+        f'<circle cx="37" cy="263" r="4.5" fill="{pal["clay"]}"/>',
+        text([(F['label'], lang)], 14, 48, 268, pal['ink2']),
+        text([(F['en'], tags)], 14, tag_x, 268, pal['ink3']),
         '</g>',
     ]
     return svg(w + gutter, h, '\n'.join(body), repo, desc)
 
 
 def card_bridge(F, pal):
-    return card(F, pal, 'blue', icon_bridge, motif_arcs, 'agent-control-bridge',
+    return card(F, pal, art_bridge, 'agent-control-bridge',
                 '让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。',
                 'Lets AI agents talk to ChatGPT and Codex on the desktop.',
                 'TypeScript', 'MCP · Windows',
-                '让 AI Agent 借 MCP 与桌面上的 ChatGPT、Codex 对话。Lets AI agents talk to ChatGPT and Codex on the desktop.',
+                '让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。Lets AI agents talk to ChatGPT and Codex on the desktop.',
                 shift=0)
 
 
 def card_lecture(F, pal):
-    return card(F, pal, 'rose', icon_calendar, motif_grid, 'seu-lecture-cli',
+    return card(F, pal, art_calendar, 'seu-lecture-cli',
                 '东南大学讲座预约小工具，会先对一对你的课表。',
                 'An unofficial SEU lecture helper that checks your timetable.',
                 'Python', 'CLI · 非官方',
@@ -337,28 +348,23 @@ def card_lecture(F, pal):
 
 # ---------------------------------------------------------------- toolbox
 
-TOOLS = [('Python', 'sage'), ('TypeScript', 'blue'), ('Node.js', 'sand'),
-         ('MCP', 'mauve'), ('PowerShell', 'stone'), ('WSL', 'rose')]
+TOOLS = ['Python', 'TypeScript', 'Node.js', 'MCP', 'PowerShell', 'WSL']
 
 
 def toolbox(F, pal):
-    w, h, pill, gap, size = 1000, 60, 40, 12, 15
-    widths = [width([(F['label'], name)], size) + 58 for name, _ in TOOLS]
-    x = 1  # flush left, under the heading
+    w, h, pill, gap, size = 1000, 60, 40, 10, 15
+    widths = [width([(F['label'], name)], size) + 40 for name in TOOLS]
+    x, y = 1, (h - pill) / 2  # flush left, under the heading
     body = []
-    for (name, tone), pw in zip(TOOLS, widths):
-        y = (h - pill) / 2
+    for name, pw in zip(TOOLS, widths):
         body += [
-            f'<rect x="{num(x)}" y="{num(y)}" width="{num(pw)}" height="{pill}" rx="{pill / 2}" '
-            f'fill="{pal[tone + "_bg"]}"/>',
-            f'<circle cx="{num(x + 22)}" cy="{h / 2}" r="5" fill="{pal[tone]}"/>',
-            text([(F['label'], name)], size, x + 36, h / 2 + 5.2, pal['ink2']),
+            f'<rect x="{num(x + .5)}" y="{num(y + .5)}" width="{num(pw - 1)}" height="{pill - 1}" '
+            f'rx="{(pill - 1) / 2}" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
+            text([(F['label'], name)], size, x + pw / 2, h / 2 + 5.2, pal['ink2'], anchor='middle'),
         ]
         x += pw + gap
-    return svg(w, h, '\n'.join(body), '常用 · Toolbox', ' · '.join(n for n, _ in TOOLS))
+    return svg(w, h, '\n'.join(body), '常用 · Toolbox', ' · '.join(TOOLS))
 
-
-# ----------------------------------------------------------------
 
 def main():
     ap = argparse.ArgumentParser()
