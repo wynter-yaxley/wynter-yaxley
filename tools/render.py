@@ -9,8 +9,8 @@ fonts a visitor has installed. The fonts themselves are not kept here:
 DIR must hold NotoSansSC-VF.ttf, EBGaramond.ttf and EBGaramond-Italic.ttf
 (the variable builds from Google Fonts, SIL Open Font License).
 
-One warm family throughout: ivory paper, oat and clay for the flat shapes,
-warm ink for type and for the loose line drawn over them.
+Warm ground (ivory, oat, clay) with one cool counterpart (sky, slate);
+shapes break out of the frames that are meant to hold them.
 """
 import argparse
 import math
@@ -23,12 +23,14 @@ from fontTools.ttLib import TTFont
 OUT = Path(__file__).resolve().parent.parent / 'assets'
 
 LIGHT = dict(
-    paper='#F5F1EA', edge='#E6DFD3', ink='#2F2A25', ink2='#5F574E', ink3='#978E82',
-    oat='#E4D9C6', clay='#C79079', clay_soft='#EBD2C4',
+    paper='#F5F1EA', edge='#E3DBCE', ink='#2B2723', ink2='#5D564D', ink3='#958C80',
+    oat='#E5D9C5', clay='#C88A6E', clay_soft='#EDCFBF',
+    sky='#D3DFE4', slate='#7F97A6',
 )
 DARK = dict(
-    paper='#22201D', edge='#36322C', ink='#EDE7DD', ink2='#BFB6A8', ink3='#877F73',
-    oat='#3B352D', clay='#B9846C', clay_soft='#4A3B32',
+    paper='#1F1D1B', edge='#36312B', ink='#EEE8DE', ink2='#C0B7AA', ink3='#877E72',
+    oat='#3A342C', clay='#BE8669', clay_soft='#4B3A31',
+    sky='#26343B', slate='#86A0AF',
 )
 
 def num(v):
@@ -250,27 +252,33 @@ def sparkle(x, y, r):
 # ---------------------------------------------------------------- header
 
 def header(F, pal):
-    w, h = 1000, 300
-    # a line that wanders, turns once on itself, and ends in a small spark
-    walk = catmull_rom([(606, 252), (660, 236), (706, 210), (722, 182), (704, 166), (686, 180),
-                        (700, 206), (754, 214), (816, 176), (862, 130), (884, 112)])
-    art = [
-        f'<path d="{blob(812, 158, 116, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" fill="{pal["oat"]}"/>',
-        f'<path d="{blob(690, 214, 56, [1, .9, 1.07, .95, 1.03, .93], .8)}" fill="{pal["clay_soft"]}"/>',
-        '<g>',
-        stroke('M' + points(walk), pal),
-        stroke(sparkle(900, 98, 17), pal, 2),
-        stroke('M928 70l7-7M934 96h10M918 126l5 6', pal, 1.8),
-        '</g>',
-        f'<circle cx="884" cy="112" r="4.5" fill="{pal["clay"]}"/>',
-    ]
+    w, h = 1000, 360
+    win = (500, 44, 430, 236)  # the window the drawing keeps escaping from
+    wx, wy, ww, wh = win
+    # the line comes in from outside, turns once inside, and leaves by the top corner
+    walk = catmull_rom([(430, 330), (520, 318), (600, 288), (650, 252), (662, 222), (640, 208),
+                        (622, 226), (646, 256), (712, 258), (800, 206), (880, 128), (946, 46)])
     body = [
         f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="16" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
-        *art,
-        text([(F['cn'], '你好，我是')], 18, 64, 96, pal['ink2'], track=0.12),
-        text([(F['name'], 'Wynter Yaxley')], 64, 60, 166, pal['ink']),
-        text([(F['cn'], '兴之所至，信手为之。')], 20, 64, 214, pal['ink2'], track=0.1),
-        text([(F['en_it'], 'Made for the joy of it — useful or not.')], 19, 64, 246, pal['ink3']),
+        # back: the window, and a second frame that missed its register
+        f'<rect x="{wx}" y="{wy}" width="{ww}" height="{wh}" fill="{pal["sky"]}"/>',
+        f'<rect x="{wx + 14}" y="{wy - 14}" width="{ww}" height="{wh}" fill="none" stroke="{pal["slate"]}" '
+        f'stroke-width="1.2"/>',
+        f'<circle cx="{wx + 70}" cy="{wy + 56}" r="17" fill="{pal["slate"]}"/>',
+        # middle: shapes that will not stay inside it
+        f'<path d="{blob(782, 178, 120, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" fill="{pal["oat"]}"/>',
+        f'<path d="{blob(612, 280, 60, [1, .9, 1.07, .95, 1.03, .93], .8)}" fill="{pal["clay_soft"]}"/>',
+        # front: type, then the line
+        text([(F['cn'], '你好，我是')], 17, 64, 82, pal['ink2'], track=0.14),
+        text([(F['name'], 'Wynter')], 96, 56, 178, pal['ink']),
+        text([(F['name_it'], 'Yaxley')], 96, 272, 266, pal['ink']),
+        stroke('M' + points(walk), pal),
+        stroke(sparkle(956, 36, 15), pal, 2),
+        f'<circle cx="946" cy="46" r="4.6" fill="{pal["clay"]}"/>',
+        text([(F['cn'], '兴之所至，信手为之。')], 18, 64, 312, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it — useful or not.')], 17, 64, 338, pal['ink3']),
+        f'<g transform="translate({wx + ww + 30} {wy + wh}) rotate(-90)">'
+        f'{text([(F["label"], "MAKING THINGS · SINCE 2022")], 10.5, 0, 0, pal["slate"], track=0.24)}</g>',
     ]
     return svg(w, h, '\n'.join(body), 'Wynter Yaxley',
                '你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it — useful or not.')
@@ -278,58 +286,70 @@ def header(F, pal):
 
 # ---------------------------------------------------------------- cards
 
-def art_bridge(pal):
+def art_bridge(pal, x, y):
+    """A window of sky with a bridge too wide for it."""
     return [
-        f'<path d="{blob(84, 62, 40, [1, .92, 1.06, .96, 1.02, .9], .4)}" fill="{pal["oat"]}"/>',
-        '<g>',
-        stroke('M36 90H134', pal, 1.8),
-        stroke('M60 90A25 25 0 0 1 110 90', pal),
-        stroke('M40 86C60 86 66 52 85 52S110 86 130 86', pal),
-        stroke('M66 102h20M94 110h14', pal, 1.6),
-        '</g>',
-        f'<circle cx="101" cy="58.5" r="4.2" fill="{pal["clay"]}"/>',
+        f'<rect x="{x}" y="{y}" width="150" height="112" fill="{pal["sky"]}"/>',
+        f'<path d="{blob(x + 108, y + 40, 30, [1, .92, 1.06, .96, 1.02, .9], .4)}" fill="{pal["oat"]}"/>',
+        stroke(f'M{x - 26} {y + 84}H{x + 176}', pal, 1.8),
+        stroke(f'M{x + 47} {y + 84}A28 28 0 0 1 {x + 103} {y + 84}', pal),
+        stroke(f'M{x - 18} {y + 80}C{x + 22} {y + 80} {x + 46} {y + 46} {x + 75} {y + 46}'
+               f'S{x + 128} {y + 80} {x + 168} {y + 80}', pal),
+        stroke(f'M{x + 52} {y + 98}h22M{x + 84} {y + 106}h16', pal, 1.6),
+        f'<circle cx="{x + 94}" cy="{y + 51}" r="4.4" fill="{pal["clay"]}"/>',
     ]
 
 
-def art_calendar(pal):
+def art_calendar(pal, x, y):
+    """A window, and a page of the timetable sliding out of it."""
+    cx, cy = x + 82, y + 70
     return [
-        f'<path d="{blob(82, 64, 38, [1, .95, 1.05, .9, 1.04, .94], 1.1)}" fill="{pal["clay_soft"]}"/>',
-        '<g transform="rotate(-6 80 66)">',
-        stroke('M52 42H108Q114 42 114 48V90Q114 96 108 96H52Q46 96 46 90V48Q46 42 52 42Z', pal),
-        stroke('M46 56H114M62 34v14M98 34v14', pal),
-        *[f'<circle cx="{x}" cy="{y}" r="2.4" fill="{pal["ink"]}"/>'
-          for x in (62, 80) for y in (70, 84)],
-        stroke('M98 72a9 9 0 1 1-1-.5', pal, 1.8),
+        f'<rect x="{x}" y="{y}" width="150" height="112" fill="{pal["sky"]}"/>',
+        f'<path d="{blob(x + 40, y + 34, 26, [1, .95, 1.05, .9, 1.04, .94], 1.1)}" fill="{pal["clay_soft"]}"/>',
+        f'<g transform="rotate(-8 {cx} {cy})">',
+        f'<rect x="{cx - 40}" y="{cy - 30}" width="80" height="70" rx="7" fill="{pal["paper"]}" '
+        f'stroke="{pal["ink"]}" stroke-width="2.2"/>',
+        stroke(f'M{cx - 40} {cy - 14}H{cx + 40}M{cx - 20} {cy - 40}v16M{cx + 20} {cy - 40}v16', pal),
+        *[f'<circle cx="{cx + dx}" cy="{cy + dy}" r="2.5" fill="{pal["ink"]}"/>'
+          for dx in (-22, -4) for dy in (6, 22)],
+        stroke(f'M{cx + 26} {cy + 6}a10 10 0 1 1-1-.5', pal, 1.8),
+        f'<circle cx="{cx + 16}" cy="{cy + 14}" r="3.6" fill="{pal["clay"]}"/>',
         '</g>',
-        f'<circle cx="97.5" cy="80.5" r="3.4" fill="{pal["clay"]}"/>',
     ]
 
 
-def card(F, pal, art, repo, cn, en, lang, tags, desc, shift):
+def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift):
     # the gutter between the two cards is drawn into them, so the README needs no spacing
-    w, h, gutter = 500, 300, 10
+    w, h, gutter, top = 500, 330, 10, 30
     for runs, size, what in (([(F['cn'], cn)], 17, cn), ([(F['en'], en)], 14.5, en)):
         fits(runs, size, w - 64, what)
     tag_x = 48 + width([(F['label'], lang)], 14) + 16
+    ghost = text([(F['name'], number)], 150, w - 18, h + 34, 'none', anchor='end',
+                 attrs=f' stroke="{pal["slate"]}" stroke-width="1.1" opacity=".55"')
     body = [
         f'<g transform="translate({gutter * shift} 0)">',
-        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="16" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
-        *art(pal),
-        f'<path d="M452 46L466 32M455 32H466V43" fill="none" stroke="{pal["ink3"]}" stroke-width="1.7" '
-        f'stroke-linecap="round" stroke-linejoin="round"/>',
-        text([(F['title'], repo)], 26, 32, 160, pal['ink']),
-        text([(F['cn'], cn)], 17, 32, 200, pal['ink2'], track=0.03),
-        text([(F['en'], en)], 14.5, 32, 228, pal['ink3']),
-        f'<circle cx="37" cy="263" r="4.5" fill="{pal["clay"]}"/>',
-        text([(F['label'], lang)], 14, 48, 268, pal['ink2']),
-        text([(F['en'], tags)], 14, tag_x, 268, pal['ink3']),
+        f'<defs><clipPath id="card"><rect y="{top}" width="{w}" height="{h - top}" rx="16"/></clipPath></defs>',
+        f'<rect x=".5" y="{top + .5}" width="{w - 1}" height="{h - top - 1}" rx="16" fill="{pal["paper"]}" '
+        f'stroke="{pal["edge"]}"/>',
+        # a numeral too large for the card, cut off by its edge
+        '<g clip-path="url(#card)">' + ghost + '</g>',
+        # the window rises out of the card's top edge
+        *art(pal, w - 196, 0),
+        text([(F['label'], number)], 12, 32, top + 44, pal['slate'], track=0.24),
+        f'<path d="M58 {top + 40}h28" stroke="{pal["slate"]}" stroke-width="1.2"/>',
+        text([(F['title'], repo)], 27, 32, 186, pal['ink']),
+        text([(F['cn'], cn)], 17, 32, 226, pal['ink2'], track=0.03),
+        text([(F['en'], en)], 14.5, 32, 254, pal['ink3']),
+        f'<circle cx="37" cy="293" r="4.5" fill="{pal["clay"]}"/>',
+        text([(F['label'], lang)], 14, 48, 298, pal['ink2']),
+        text([(F['en'], tags)], 14, tag_x, 298, pal['ink3']),
         '</g>',
     ]
     return svg(w + gutter, h, '\n'.join(body), repo, desc)
 
 
 def card_bridge(F, pal):
-    return card(F, pal, art_bridge, 'agent-control-bridge',
+    return card(F, pal, art_bridge, '01', 'agent-control-bridge',
                 '让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。',
                 'Lets AI agents talk to ChatGPT and Codex on the desktop.',
                 'TypeScript', 'MCP · Windows',
@@ -338,7 +358,7 @@ def card_bridge(F, pal):
 
 
 def card_lecture(F, pal):
-    return card(F, pal, art_calendar, 'seu-lecture-cli',
+    return card(F, pal, art_calendar, '02', 'seu-lecture-cli',
                 '东南大学讲座预约小工具，会先对一对你的课表。',
                 'An unofficial SEU lecture helper that checks your timetable.',
                 'Python', 'CLI · 非官方',
@@ -352,15 +372,17 @@ TOOLS = ['Python', 'TypeScript', 'Node.js', 'MCP', 'PowerShell', 'WSL']
 
 
 def toolbox(F, pal):
-    w, h, pill, gap, size = 1000, 60, 40, 10, 15
-    widths = [width([(F['label'], name)], size) + 40 for name in TOOLS]
-    x, y = 1, (h - pill) / 2  # flush left, under the heading
-    body = []
-    for name, pw in zip(TOOLS, widths):
+    """Pills set slightly off a common line, warm and cool dots taking turns."""
+    w, h, pill, gap, size = 1000, 72, 40, 10, 15
+    widths = [width([(F['label'], name)], size) + 52 for name in TOOLS]
+    x, body = 1, []
+    for i, (name, pw) in enumerate(zip(TOOLS, widths)):
+        y = 6 + (i % 2) * 20
         body += [
-            f'<rect x="{num(x + .5)}" y="{num(y + .5)}" width="{num(pw - 1)}" height="{pill - 1}" '
+            f'<rect x="{num(x + .5)}" y="{y + .5}" width="{num(pw - 1)}" height="{pill - 1}" '
             f'rx="{(pill - 1) / 2}" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
-            text([(F['label'], name)], size, x + pw / 2, h / 2 + 5.2, pal['ink2'], anchor='middle'),
+            f'<circle cx="{num(x + 20)}" cy="{y + pill / 2}" r="4" fill="{pal["clay" if i % 2 else "slate"]}"/>',
+            text([(F['label'], name)], size, x + 32, y + pill / 2 + 5.2, pal['ink2']),
         ]
         x += pw + gap
     return svg(w, h, '\n'.join(body), '常用 · Toolbox', ' · '.join(TOOLS))
@@ -375,7 +397,7 @@ def main():
     eb = Font(args.fonts / 'EBGaramond.ttf')
     ebi = Font(args.fonts / 'EBGaramond-Italic.ttf')
     F = dict(cn=sans.at(400), en=sans.at(400), label=sans.at(500), title=sans.at(600),
-             name=eb.at(500), en_it=ebi.at(400))
+             name=eb.at(500), name_it=ebi.at(500), en_it=ebi.at(400))
     pages = dict(header=header, card_bridge=card_bridge, card_lecture=card_lecture, toolbox=toolbox)
     OUT.mkdir(exist_ok=True)
     for name, draw in pages.items():
