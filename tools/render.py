@@ -251,37 +251,59 @@ def sparkle(x, y, r):
 
 # ---------------------------------------------------------------- header
 
+def bird(x, y, r):
+    """Two strokes for wings, the way a bird is written in the margin of a sketchbook."""
+    return f'M{x - r} {y}Q{x - r / 2} {y - r * .6} {x} {y}Q{x + r / 2} {y - r * .6} {x + r} {y}'
+
+
 def header(F, pal):
-    w, h = 1000, 360
-    win = (500, 44, 430, 236)  # the window the drawing keeps escaping from
-    wx, wy, ww, wh = win
-    # the line comes in from outside, turns once inside, and leaves by the top corner
-    walk = catmull_rom([(430, 330), (520, 318), (600, 288), (650, 252), (662, 222), (640, 208),
-                        (622, 226), (646, 256), (712, 258), (800, 206), (880, 128), (946, 46)])
+    """Wynter: warm and cold at once, so a winter window with a low warm sun.
+    Yaxley: an old English place, geac-leah, the cuckoo's clearing; a bird leaves it."""
+    w, h, m = 1000, 480, 72
+    wx, wy, ww, wh = 548, 124, 366, 248
+    # Yaxley starts where the t of Wynter does, so the step follows a letter, not a guess
+    placed, _ = shape([(F['name'], 'Wynter')], 112)
+    step = 66 + next(gx for face, n, gx, k in placed if n == 't')
+    flight = catmull_rom([(512, 404), (566, 392), (622, 366), (662, 330), (670, 298), (648, 282),
+                          (628, 300), (650, 330), (712, 334), (782, 284), (830, 206), (856, 136), (870, 96), (880, 70)])
+    exit_at = next(i for i, (x, y) in enumerate(flight) if y < wy)
     body = [
-        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="16" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
-        # back: the window, and a second frame that missed its register
+        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="18" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
+        # back: the window, a frame that missed its register, a low sun
         f'<rect x="{wx}" y="{wy}" width="{ww}" height="{wh}" fill="{pal["sky"]}"/>',
         f'<rect x="{wx + 14}" y="{wy - 14}" width="{ww}" height="{wh}" fill="none" stroke="{pal["slate"]}" '
         f'stroke-width="1.2"/>',
-        f'<circle cx="{wx + 70}" cy="{wy + 56}" r="17" fill="{pal["slate"]}"/>',
-        # middle: shapes that will not stay inside it
-        f'<path d="{blob(782, 178, 120, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" fill="{pal["oat"]}"/>',
-        f'<path d="{blob(612, 280, 60, [1, .9, 1.07, .95, 1.03, .93], .8)}" fill="{pal["clay_soft"]}"/>',
-        # front: type, then the line
-        text([(F['cn'], '你好，我是')], 17, 64, 82, pal['ink2'], track=0.14),
-        text([(F['name'], 'Wynter')], 96, 56, 178, pal['ink']),
-        text([(F['name_it'], 'Yaxley')], 96, 272, 266, pal['ink']),
-        stroke('M' + points(walk), pal),
-        stroke(sparkle(956, 36, 15), pal, 2),
-        f'<circle cx="946" cy="46" r="4.6" fill="{pal["clay"]}"/>',
-        text([(F['cn'], '兴之所至，信手为之。')], 18, 64, 312, pal['ink2'], track=0.1),
-        text([(F['en_it'], 'Made for the joy of it — useful or not.')], 17, 64, 338, pal['ink3']),
-        f'<g transform="translate({wx + ww + 30} {wy + wh}) rotate(-90)">'
-        f'{text([(F["label"], "MAKING THINGS · SINCE 2022")], 10.5, 0, 0, pal["slate"], track=0.24)}</g>',
+        f'<circle cx="{wx + 84}" cy="{wy + 86}" r="24" fill="{pal["clay_soft"]}"/>',
+        f'<circle cx="{wx + 84}" cy="{wy + 86}" r="34" fill="none" stroke="{pal["clay"]}" stroke-width="1" '
+        f'stroke-dasharray="2 6" stroke-linecap="round"/>',
+        # middle: the clearing, too large for the window
+        f'<path d="{blob(808, 312, 100, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" fill="{pal["oat"]}"/>',
+        # front: type
+        text([(F['cn'], '你好，我是')], 17, m, 96, pal['ink2'], track=0.14),
+        text([(F['name'], 'Wynter')], 112, m - 6, 206, pal['ink']),
+        text([(F['name_it'], 'Yaxley')], 112, step, 318, pal['ink']),
+        text([(F['en'], '†')], 26, step + width([(F['name_it'], 'Yaxley')], 112) - 14, 242, pal['slate']),
+        text([(F['cn'], '兴之所至，')], 17, m, 254, pal['ink2'], track=0.1),
+        text([(F['cn'], '信手为之。')], 17, m, 280, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it,')], 16, m, 308, pal['ink3']),
+        text([(F['en_it'], 'useful or not.')], 16, m, 328, pal['ink3']),
+        # the line: drawn inside, dotted once it has flown
+        stroke('M' + points(flight[:exit_at + 1]), pal),
+        f'<path d="M{points(flight[exit_at:])}" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
+        f'stroke-dasharray="1 7" stroke-linecap="round"/>',
+        stroke(bird(898, 60, 16), pal, 2.2),
+        f'<circle cx="{flight[0][0]:.1f}" cy="{flight[0][1]:.1f}" r="4.6" fill="{pal["clay"]}"/>',
+        # a footnote, the way an old English gazetteer would give it
+        f'<path d="M{m} 388h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
+        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 13.5, m, 414, pal['ink2'],
+             track=0.04),
+        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 14, m + 9, 436, pal['ink3']),
+        text([(F['label'], 'MAKING THINGS · EST. 2022')], 10.5, wx + ww + 14, 436, pal['slate'],
+             anchor='end', track=0.24),
     ]
     return svg(w, h, '\n'.join(body), 'Wynter Yaxley',
-               '你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it — useful or not.')
+               '你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it, useful or not. '
+               'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。From Old English gēac-lēah, the cuckoo’s clearing.')
 
 
 # ---------------------------------------------------------------- cards
@@ -372,12 +394,12 @@ TOOLS = ['Python', 'TypeScript', 'Node.js', 'MCP', 'PowerShell', 'WSL']
 
 
 def toolbox(F, pal):
-    """Pills set slightly off a common line, warm and cool dots taking turns."""
-    w, h, pill, gap, size = 1000, 72, 40, 10, 15
+    """Pills on one line, warm and cool dots taking turns."""
+    w, h, pill, gap, size = 1000, 60, 40, 10, 15
     widths = [width([(F['label'], name)], size) + 52 for name in TOOLS]
     x, body = 1, []
     for i, (name, pw) in enumerate(zip(TOOLS, widths)):
-        y = 6 + (i % 2) * 20
+        y = (h - pill) / 2
         body += [
             f'<rect x="{num(x + .5)}" y="{y + .5}" width="{num(pw - 1)}" height="{pill - 1}" '
             f'rx="{(pill - 1) / 2}" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
