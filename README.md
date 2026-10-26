@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <strong>好奇什么，就动手试试。</strong><br>
-  I make things out of curiosity — sometimes useful, sometimes just for fun.
+  <strong>兴趣所至，动手试试。</strong><br>
+  Making things out of curiosity — sometimes useful, sometimes just for fun.
 </p>
 
 <p align="center">
