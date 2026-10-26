@@ -10,7 +10,7 @@ DIR must hold NotoSansSC-VF.ttf, EBGaramond.ttf and EBGaramond-Italic.ttf
 (the variable builds from Google Fonts, SIL Open Font License).
 
 Warm ground (ivory, oat, clay) with one cool counterpart (sky, slate) and a
-little moss; the sky and the moss are printed through a halftone screen;
+little moss as an accent; the colour fields are printed through a halftone screen;
 shapes break out of the frames that are meant to hold them.
 """
 import argparse
@@ -29,13 +29,13 @@ LIGHT = dict(
     paper='#F5F1EA', edge='#E3DBCE', ink='#2B2723', ink2='#5D564D', ink3='#958C80',
     oat='#E5D9C5', clay='#C88A6E', clay_soft='#EDCFBF',
     sky='#D3DFE4', slate='#7F97A6',
-    moss='#C5CEB4', moss_dot='#B0BC9E', sky_dot='#BDCDD5',
+    moss='#C5CEB4', moss_dot='#B0BC9E', sky_dot='#BDCDD5', oat_dot='#D8CAB1',
 )
 DARK = dict(
     paper='#1F1D1B', edge='#36312B', ink='#EEE8DE', ink2='#C0B7AA', ink3='#877E72',
     oat='#3A342C', clay='#BE8669', clay_soft='#4B3A31',
     sky='#26343B', slate='#86A0AF',
-    moss='#38432F', moss_dot='#46523C', sky_dot='#30414A',
+    moss='#38432F', moss_dot='#46523C', sky_dot='#30414A', oat_dot='#443D33',
 )
 
 def num(v):
@@ -257,11 +257,11 @@ def sparkle(x, y, r):
 # ---------------------------------------------------------------- header
 
 def screens(pal):
-    """Halftone screens at 45 degrees, so the sky and the moss read as printed."""
+    """Halftone screens at 45 degrees, so the colour fields read as printed."""
     return '<defs>' + ''.join(
         f'<pattern id="{name}" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
         f'<circle cx="2.1" cy="2.1" r="{r}" fill="{pal[name + "_dot"]}"/></pattern>'
-        for name, r in (('sky', .95), ('moss', 1.2))) + '</defs>'
+        for name, r in (('sky', .95), ('moss', 1.2), ('oat', 1.1))) + '</defs>'
 
 
 def printed(shape, pal, ink):
@@ -297,7 +297,9 @@ def header(F, pal):
         f'stroke-dasharray="2 6" stroke-linecap="round"/>',
         # middle: the clearing, too large for the window
         printed(f'<path d="{blob(808, 312, 100, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" fill="{{fill}}"/>',
-                pal, 'moss'),
+                pal, 'oat'),
+        # moss stays an accent: one small stone beside the sun
+        printed(f'<circle cx="{wx + 138}" cy="{wy + 132}" r="11" fill="{{fill}}"/>', pal, 'moss'),
         # front: type
         text([(F['cn'], '你好，我是')], 17, m, 96, pal['ink2'], track=0.14),
         text([(F['name'], 'Wynter')], 112, m - 6, 206, pal['ink']),

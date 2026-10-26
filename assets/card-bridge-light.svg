@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="510" height="330" viewBox="0 0 510 330" role="img" aria-labelledby="t d">
 <title id="t">agent-control-bridge</title>
 <desc id="d">让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。Lets AI agents talk to ChatGPT and Codex on the desktop.</desc>
-<defs><pattern id="sky" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.1" cy="2.1" r="0.95" fill="#BDCDD5"/></pattern><pattern id="moss" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.1" cy="2.1" r="1.2" fill="#B0BC9E"/></pattern></defs>
+<defs><pattern id="sky" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.1" cy="2.1" r="0.95" fill="#BDCDD5"/></pattern><pattern id="moss" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.1" cy="2.1" r="1.2" fill="#B0BC9E"/></pattern><pattern id="oat" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="2.1" cy="2.1" r="1.1" fill="#D8CAB1"/></pattern></defs>
 <g transform="translate(0 0)">
 <defs><clipPath id="card"><rect y="30" width="500" height="300" rx="16"/></clipPath></defs>
 <rect x=".5" y="30.5" width="499" height="299" rx="16" fill="#F5F1EA" stroke="#E3DBCE"/>
