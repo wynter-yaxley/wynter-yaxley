@@ -446,24 +446,25 @@ def main():
              name=eb.at(500), name_it=ebi.at(500), en_it=ebi.at(400))
     pages = dict(header=header, card_bridge=card_bridge, card_lecture=card_lecture, toolbox=toolbox)
     OUT.mkdir(exist_ok=True)
+    # the content hash goes into the file name: GitHub's raw links drop query strings
+    # and its CDN caches by path, so a changed drawing must live at a new path
+    written = {}
     for name, draw in pages.items():
         for mode, pal in (('light', LIGHT), ('dark', DARK)):
-            path = OUT / f'{name.replace("_", "-")}-{mode}.svg'
-            path.write_text(draw(F, pal), encoding='utf-8')
-            print(f'{path.name:24} {path.stat().st_size / 1024:6.1f} KB')
-    stamp_readme()
-
-
-def stamp_readme():
-    """Give every image link a content hash, so browsers drop their old copy when a drawing changes."""
+            stem = f'{name.replace("_", "-")}-{mode}'
+            data = draw(F, pal).encode('utf-8')
+            path = OUT / f'{stem}.{hashlib.sha1(data).hexdigest()[:8]}.svg'
+            path.write_bytes(data)
+            written[stem] = path.name
+            print(f'{path.name:34} {len(data) / 1024:6.1f} KB')
+    for old in OUT.glob('*.svg'):
+        if old.name not in written.values():
+            old.unlink()
     readme = OUT.parent / 'README.md'
     src = readme.read_text(encoding='utf-8')
-
-    def stamp(m):
-        digest = hashlib.sha1((OUT / m.group(1)).read_bytes()).hexdigest()[:8]
-        return f'assets/{m.group(1)}?v={digest}'
-
-    readme.write_text(re.sub(r'assets/([\w.-]+\.svg)(?:\?v=\w+)?', stamp, src), encoding='utf-8')
+    src = re.sub(r'assets/([a-z-]+-(?:light|dark))(?:\.\w{8})?\.svg(?:\?v=\w+)?',
+                 lambda m: f'assets/{written[m.group(1)]}', src)
+    readme.write_text(src, encoding='utf-8')
 
 
 if __name__ == '__main__':
