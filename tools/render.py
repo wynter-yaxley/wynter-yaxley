@@ -14,7 +14,9 @@ little moss; the sky and the moss are printed through a halftone screen;
 shapes break out of the frames that are meant to hold them.
 """
 import argparse
+import hashlib
 import math
+import re
 from pathlib import Path
 
 from fontTools.pens.basePen import BasePen
@@ -447,6 +449,19 @@ def main():
             path = OUT / f'{name.replace("_", "-")}-{mode}.svg'
             path.write_text(draw(F, pal), encoding='utf-8')
             print(f'{path.name:24} {path.stat().st_size / 1024:6.1f} KB')
+    stamp_readme()
+
+
+def stamp_readme():
+    """Give every image link a content hash, so browsers drop their old copy when a drawing changes."""
+    readme = OUT.parent / 'README.md'
+    src = readme.read_text(encoding='utf-8')
+
+    def stamp(m):
+        digest = hashlib.sha1((OUT / m.group(1)).read_bytes()).hexdigest()[:8]
+        return f'assets/{m.group(1)}?v={digest}'
+
+    readme.write_text(re.sub(r'assets/([\w.-]+\.svg)(?:\?v=\w+)?', stamp, src), encoding='utf-8')
 
 
 if __name__ == '__main__':
