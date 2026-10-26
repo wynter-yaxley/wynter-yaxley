@@ -1,4 +1,4 @@
-# Hi, I'm Wynter 👋
+# Hi, I'm Wynter Yaxley 👋
 
 **Building practical tools with AI agents.**  
 用 AI Agent 做些能解决实际问题的小工具。
