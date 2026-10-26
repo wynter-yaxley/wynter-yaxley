@@ -9,11 +9,12 @@ fonts a visitor has installed. The fonts themselves are not kept here:
 DIR must hold NotoSansSC-VF.ttf, EBGaramond.ttf and EBGaramond-Italic.ttf
 (the variable builds from Google Fonts, SIL Open Font License).
 
-Warm ground (ivory, oat, clay) with one cool counterpart (sky, slate);
-shapes break out of the frames that are meant to hold them.
+Warm white paper and near-black type; colour lives only in the prints (sage, ochre,
+a clay sun, a slate frame). Type and line break out of the frames that hold them.
 """
 import argparse
 import math
+import random
 from pathlib import Path
 
 from fontTools.pens.basePen import BasePen
@@ -23,14 +24,16 @@ from fontTools.ttLib import TTFont
 OUT = Path(__file__).resolve().parent.parent / 'assets'
 
 LIGHT = dict(
-    paper='#F5F1EA', edge='#E3DBCE', ink='#2B2723', ink2='#5D564D', ink3='#958C80',
-    oat='#E5D9C5', clay='#C88A6E', clay_soft='#EDCFBF',
-    sky='#D3DFE4', slate='#7F97A6',
+    paper='#FBF9F6', edge='#E8E2D8', ink='#2B2723', ink2='#5D564D', ink3='#958C80',
+    clay='#C88A6E', clay_soft='#EDCFBF', slate='#7F97A6', feather='#F8F6F0',
+    sage='#C2CCB3', sage_dot='#AAB89C', sage_deep='#56664F',
+    ochre='#E6D9BF', ochre_dot='#D2C19C', ochre_deep='#7E6A45',
 )
 DARK = dict(
-    paper='#1F1D1B', edge='#36312B', ink='#EEE8DE', ink2='#C0B7AA', ink3='#877E72',
-    oat='#3A342C', clay='#BE8669', clay_soft='#4B3A31',
-    sky='#26343B', slate='#86A0AF',
+    paper='#1E1D1B', edge='#34302B', ink='#EEE8DE', ink2='#C0B7AA', ink3='#877E72',
+    clay='#BE8669', clay_soft='#4B3A31', slate='#86A0AF', feather='#8E9384',
+    sage='#2E372B', sage_dot='#3B4637', sage_deep='#A8B99E',
+    ochre='#352F24', ochre_dot='#463D2E', ochre_deep='#CDB98F',
 )
 
 def num(v):
@@ -249,6 +252,83 @@ def sparkle(x, y, r):
             f'Q{x} {y} {x - r} {y}Q{x} {y} {x} {y - r}Z')
 
 
+# ---------------------------------------------------------------- the feather
+#
+# One motif, cropped differently wherever it appears: a cuckoo's feather (Yaxley
+# is the cuckoo's clearing), which is also a quill, for making things. It is
+# printed in halftone, the way a riso print or an old engraving would carry it.
+
+def halftone(pal, tone):
+    """Two dot screens at 45 degrees: one darkens the ground, one prints the feather."""
+    return (f'<pattern id="ground" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+            f'<circle cx="2.1" cy="2.1" r="1.05" fill="{pal[tone + "_dot"]}"/></pattern>'
+            f'<pattern id="ink" width="4.2" height="4.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+            f'<circle cx="2.1" cy="2.1" r="1.8" fill="{pal["feather"]}"/></pattern>')
+
+
+def feather(pal, tone, base, bend, tip, left, right, seed):
+    rnd = random.Random(seed)
+
+    def at(t):
+        return tuple((1 - t) ** 2 * a + 2 * t * (1 - t) * b + t * t * c for a, b, c in zip(base, bend, tip))
+
+    def normal(t):
+        dx = 2 * (1 - t) * (bend[0] - base[0]) + 2 * t * (tip[0] - bend[0])
+        dy = 2 * (1 - t) * (bend[1] - base[1]) + 2 * t * (tip[1] - bend[1])
+        n = math.hypot(dx, dy)
+        return -dy / n, dx / n
+
+    def edge(t, side):
+        t = min(t, 1.0)
+        reach = (left if side > 0 else right) * math.sin(math.pi * max(0.0, min(1.0, (t - .1) / .92))) ** .6 * (1 - .25 * t)
+        (x, y), (nx, ny) = at(t), normal(t)
+        return x + side * nx * reach, y + side * ny * reach
+
+    ts = [.12 + .88 * i / 180 for i in range(181)]
+    vane = 'M' + points([edge(t, 1) for t in ts] + [edge(t, -1) for t in reversed(ts)]) + 'Z'
+    gaps, barbs = [], []
+    for side in (1, -1):
+        # real vanes split where the barbs come unzipped: narrow, uneven, more of them
+        for _ in range(5):
+            t, gap = rnd.uniform(.22, .9), rnd.uniform(.012, .028)
+            gaps.append('M' + points([at(t), edge(t + .05, side), edge(t + .05 + gap, side), at(t + .006)]) + 'Z')
+        t = .15
+        while t < .97:
+            (x, y), (nx, ny) = at(t), normal(t)
+            ex, ey = edge(t + .07, side)
+            # each barb leaves the shaft square-ish and sweeps toward the tip
+            cx, cy = x + side * nx * (abs(ex - x) + abs(ey - y)) * .35, y + side * ny * (abs(ex - x) + abs(ey - y)) * .35
+            barbs.append(f'M{x:.1f} {y:.1f}Q{cx:.1f} {cy:.1f} {ex:.1f} {ey:.1f}')
+            t += .011
+    fluff = []
+    for i in range(9):
+        t = rnd.uniform(.05, .14)
+        (x, y), (nx, ny) = at(t), normal(t)
+        side, reach = rnd.choice((1, -1)), rnd.uniform(14, 34)
+        fluff.append(f'M{x:.1f} {y:.1f}q{side * nx * reach * .6 + rnd.uniform(-8, 8):.1f} '
+                     f'{side * ny * reach * .6 + rnd.uniform(-8, 8):.1f} {side * nx * reach:.1f} {side * ny * reach:.1f}')
+    shaft = 'M' + points([at(i / 60) for i in range(61)])
+    return [
+        f'<path d="{vane}" fill="url(#ink)"/>',
+        f'<path d="{"".join(gaps)}" fill="{pal[tone]}"/>',
+        f'<path d="{"".join(barbs)}" fill="none" stroke="{pal[tone]}" stroke-width=".9" opacity=".7"/>',
+        f'<path d="{"".join(fluff)}" fill="none" stroke="{pal["feather"]}" stroke-width="1.1" stroke-linecap="round"/>',
+        f'<path d="{shaft}" fill="none" stroke="{pal[tone + "_deep"]}" stroke-width="2" stroke-linecap="round"/>',
+    ]
+
+
+def print_panel(pal, tone, x, y, w, h, *art):
+    """A rounded print: ground, screen, then whatever is printed on it, cut to the edge."""
+    return [
+        f'<clipPath id="panel"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="18"/></clipPath>',
+        '<g clip-path="url(#panel)">',
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{pal[tone]}"/>',
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="url(#ground)"/>',
+        *art,
+        '</g>',
+    ]
+
+
 # ---------------------------------------------------------------- header
 
 def bird(x, y, r):
@@ -257,49 +337,43 @@ def bird(x, y, r):
 
 
 def header(F, pal):
-    """Wynter: warm and cold at once, so a winter window with a low warm sun.
+    """Wynter: warm and cold at once, so a winter print with a low warm sun.
     Yaxley: an old English place, geac-leah, the cuckoo's clearing; a bird leaves it."""
-    w, h, m = 1000, 480, 72
-    wx, wy, ww, wh = 548, 124, 366, 248
+    w, h, m = 1000, 500, 72
+    px, py, pw, ph = 548, 104, 380, 300
     # Yaxley starts where the t of Wynter does, so the step follows a letter, not a guess
     placed, _ = shape([(F['name'], 'Wynter')], 112)
     step = 66 + next(gx for face, n, gx, k in placed if n == 't')
-    flight = catmull_rom([(512, 404), (566, 392), (622, 366), (662, 330), (670, 298), (648, 282),
-                          (628, 300), (650, 330), (712, 334), (782, 284), (830, 206), (856, 136), (870, 96), (880, 70)])
-    exit_at = next(i for i, (x, y) in enumerate(flight) if y < wy)
+    yaxley_w = width([(F['name_it'], 'Yaxley')], 112)
+    motto_end = m + width([(F['en_it'], 'useful or not.')], 16)
     body = [
+        f'<defs>{halftone(pal, "sage")}</defs>',
         f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="18" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
-        # back: the window, a frame that missed its register, a low sun
-        f'<rect x="{wx}" y="{wy}" width="{ww}" height="{wh}" fill="{pal["sky"]}"/>',
-        f'<rect x="{wx + 14}" y="{wy - 14}" width="{ww}" height="{wh}" fill="none" stroke="{pal["slate"]}" '
+        # a frame that missed its register, behind the print
+        f'<rect x="{px + 14}" y="{py - 14}" width="{pw}" height="{ph}" rx="18" fill="none" stroke="{pal["slate"]}" '
         f'stroke-width="1.2"/>',
-        f'<circle cx="{wx + 84}" cy="{wy + 86}" r="24" fill="{pal["clay_soft"]}"/>',
-        f'<circle cx="{wx + 84}" cy="{wy + 86}" r="34" fill="none" stroke="{pal["clay"]}" stroke-width="1" '
-        f'stroke-dasharray="2 6" stroke-linecap="round"/>',
-        # middle: the clearing, too large for the window
-        f'<path d="{blob(808, 312, 100, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" fill="{pal["oat"]}"/>',
-        # front: type
-        text([(F['cn'], '你好，我是')], 17, m, 96, pal['ink2'], track=0.14),
-        text([(F['name'], 'Wynter')], 112, m - 6, 206, pal['ink']),
-        text([(F['name_it'], 'Yaxley')], 112, step, 318, pal['ink']),
-        text([(F['en'], '†')], 26, step + width([(F['name_it'], 'Yaxley')], 112) - 14, 242, pal['slate']),
-        text([(F['cn'], '兴之所至，')], 17, m, 254, pal['ink2'], track=0.1),
-        text([(F['cn'], '信手为之。')], 17, m, 280, pal['ink2'], track=0.1),
-        text([(F['en_it'], 'Made for the joy of it,')], 16, m, 308, pal['ink3']),
-        text([(F['en_it'], 'useful or not.')], 16, m, 328, pal['ink3']),
-        # the line: drawn inside, dotted once it has flown
-        stroke('M' + points(flight[:exit_at + 1]), pal),
-        f'<path d="M{points(flight[exit_at:])}" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
+        *print_panel(pal, 'sage', px, py, pw, ph,
+                     f'<circle cx="{px + 74}" cy="{py + 70}" r="26" fill="{pal["clay_soft"]}"/>',
+                     *feather(pal, 'sage', (604, 480), (812, 336), (930, 70), 80, 52, seed=3)),
+        # the bird has left the clearing; its way out is dotted
+        f'<path d="M846 {py}Q852 82 872 66" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
         f'stroke-dasharray="1 7" stroke-linecap="round"/>',
-        stroke(bird(898, 60, 16), pal, 2.2),
-        f'<circle cx="{flight[0][0]:.1f}" cy="{flight[0][1]:.1f}" r="4.6" fill="{pal["clay"]}"/>',
+        stroke(bird(892, 60, 16), pal, 2.2),
+        text([(F['cn'], '你好，我是')], 17, m, 104, pal['ink2'], track=0.14),
+        text([(F['name'], 'Wynter')], 112, m - 6, 214, pal['ink']),
+        text([(F['name_it'], 'Yaxley')], 112, step, 326, pal['ink']),
+        text([(F['en'], '†')], 26, step + yaxley_w - 14, 250, pal['slate']),
+        text([(F['cn'], '兴之所至，')], 17, m, 262, pal['ink2'], track=0.1),
+        text([(F['cn'], '信手为之。')], 17, m, 288, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it,')], 16, m, 316, pal['ink3']),
+        text([(F['en_it'], 'useful or not.')], 16, m, 336, pal['ink3']),
+        f'<rect x="{motto_end + 4:.1f}" y="334" width="9" height="2.2" fill="{pal["slate"]}"/>',
         # a footnote, the way an old English gazetteer would give it
-        f'<path d="M{m} 388h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
-        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 13.5, m, 414, pal['ink2'],
+        f'<path d="M{m} 398h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
+        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 13.5, m, 424, pal['ink2'],
              track=0.04),
-        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 14, m + 9, 436, pal['ink3']),
-        text([(F['label'], 'MAKING THINGS · EST. 2022')], 10.5, wx + ww + 14, 436, pal['slate'],
-             anchor='end', track=0.24),
+        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 14, m + 9, 446, pal['ink3']),
+        text([(F['label'], 'MAKING THINGS · EST. 2022')], 10.5, px + pw, 446, pal['slate'], anchor='end', track=0.24),
     ]
     return svg(w, h, '\n'.join(body), 'Wynter Yaxley',
                '你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it, useful or not. '
@@ -308,70 +382,34 @@ def header(F, pal):
 
 # ---------------------------------------------------------------- cards
 
-def art_bridge(pal, x, y):
-    """A window of sky with a bridge too wide for it."""
-    return [
-        f'<rect x="{x}" y="{y}" width="150" height="112" fill="{pal["sky"]}"/>',
-        f'<path d="{blob(x + 108, y + 40, 30, [1, .92, 1.06, .96, 1.02, .9], .4)}" fill="{pal["oat"]}"/>',
-        stroke(f'M{x - 26} {y + 84}H{x + 176}', pal, 1.8),
-        stroke(f'M{x + 47} {y + 84}A28 28 0 0 1 {x + 103} {y + 84}', pal),
-        stroke(f'M{x - 18} {y + 80}C{x + 22} {y + 80} {x + 46} {y + 46} {x + 75} {y + 46}'
-               f'S{x + 128} {y + 80} {x + 168} {y + 80}', pal),
-        stroke(f'M{x + 52} {y + 98}h22M{x + 84} {y + 106}h16', pal, 1.6),
-        f'<circle cx="{x + 94}" cy="{y + 51}" r="4.4" fill="{pal["clay"]}"/>',
-    ]
-
-
-def art_calendar(pal, x, y):
-    """A window, and a page of the timetable sliding out of it."""
-    cx, cy = x + 82, y + 70
-    return [
-        f'<rect x="{x}" y="{y}" width="150" height="112" fill="{pal["sky"]}"/>',
-        f'<path d="{blob(x + 40, y + 34, 26, [1, .95, 1.05, .9, 1.04, .94], 1.1)}" fill="{pal["clay_soft"]}"/>',
-        f'<g transform="rotate(-8 {cx} {cy})">',
-        f'<rect x="{cx - 40}" y="{cy - 30}" width="80" height="70" rx="7" fill="{pal["paper"]}" '
-        f'stroke="{pal["ink"]}" stroke-width="2.2"/>',
-        stroke(f'M{cx - 40} {cy - 14}H{cx + 40}M{cx - 20} {cy - 40}v16M{cx + 20} {cy - 40}v16', pal),
-        *[f'<circle cx="{cx + dx}" cy="{cy + dy}" r="2.5" fill="{pal["ink"]}"/>'
-          for dx in (-22, -4) for dy in (6, 22)],
-        stroke(f'M{cx + 26} {cy + 6}a10 10 0 1 1-1-.5', pal, 1.8),
-        f'<circle cx="{cx + 16}" cy="{cy + 14}" r="3.6" fill="{pal["clay"]}"/>',
-        '</g>',
-    ]
-
-
-def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift):
+def card(F, pal, tone, quill, number, repo, cn, en, lang, tags, desc, shift):
+    """Print above, words below, nothing boxed in; the numeral is too big for its print."""
     # the gutter between the two cards is drawn into them, so the README needs no spacing
-    w, h, gutter, top = 500, 330, 10, 30
-    for runs, size, what in (([(F['cn'], cn)], 17, cn), ([(F['en'], en)], 14.5, en)):
-        fits(runs, size, w - 64, what)
-    tag_x = 48 + width([(F['label'], lang)], 14) + 16
-    ghost = text([(F['name'], number)], 150, w - 18, h + 34, 'none', anchor='end',
-                 attrs=f' stroke="{pal["slate"]}" stroke-width="1.1" opacity=".55"')
+    w, h, gutter, ph = 500, 384, 10, 230
+    for runs, size, what in (([(F['cn'], cn)], 16.5, cn), ([(F['en'], en)], 14, en)):
+        fits(runs, size, w - 40, what)
+    tag_x = 20 + width([(F['label'], lang)], 14) + 16
     body = [
+        f'<defs>{halftone(pal, tone)}</defs>',
         f'<g transform="translate({gutter * shift} 0)">',
-        f'<defs><clipPath id="card"><rect y="{top}" width="{w}" height="{h - top}" rx="16"/></clipPath></defs>',
-        f'<rect x=".5" y="{top + .5}" width="{w - 1}" height="{h - top - 1}" rx="16" fill="{pal["paper"]}" '
-        f'stroke="{pal["edge"]}"/>',
-        # a numeral too large for the card, cut off by its edge
-        '<g clip-path="url(#card)">' + ghost + '</g>',
-        # the window rises out of the card's top edge
-        *art(pal, w - 196, 0),
-        text([(F['label'], number)], 12, 32, top + 44, pal['slate'], track=0.24),
-        f'<path d="M58 {top + 40}h28" stroke="{pal["slate"]}" stroke-width="1.2"/>',
-        text([(F['title'], repo)], 27, 32, 186, pal['ink']),
-        text([(F['cn'], cn)], 17, 32, 226, pal['ink2'], track=0.03),
-        text([(F['en'], en)], 14.5, 32, 254, pal['ink3']),
-        f'<circle cx="37" cy="293" r="4.5" fill="{pal["clay"]}"/>',
-        text([(F['label'], lang)], 14, 48, 298, pal['ink2']),
-        text([(F['en'], tags)], 14, tag_x, 298, pal['ink3']),
+        *print_panel(pal, tone, 0, 0, w, ph, *feather(pal, tone, *quill),
+                     text([(F['name'], number)], 200, w - 26, ph + 40, pal[tone + '_deep'], anchor='end',
+                          attrs=' opacity=".85"')),
+        text([(F['title'], repo)], 25, 2, 278, pal['ink']),
+        f'<path d="M{w - 22} 272L{w - 8} 258M{w - 19} 258H{w - 8}V269" fill="none" stroke="{pal["ink3"]}" '
+        f'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+        text([(F['cn'], cn)], 16.5, 2, 310, pal['ink2'], track=0.03),
+        text([(F['en'], en)], 14, 2, 335, pal['ink3']),
+        f'<circle cx="7" cy="365" r="4.5" fill="{pal["clay"]}"/>',
+        text([(F['label'], lang)], 14, 20, 370, pal['ink2']),
+        text([(F['en'], tags)], 14, tag_x, 370, pal['ink3']),
         '</g>',
     ]
     return svg(w + gutter, h, '\n'.join(body), repo, desc)
 
 
 def card_bridge(F, pal):
-    return card(F, pal, art_bridge, '01', 'agent-control-bridge',
+    return card(F, pal, 'sage', ((-60, 330), (300, 226), (560, -40), 150, 104, 5), '01', 'agent-control-bridge',
                 '让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。',
                 'Lets AI agents talk to ChatGPT and Codex on the desktop.',
                 'TypeScript', 'MCP · Windows',
@@ -380,7 +418,7 @@ def card_bridge(F, pal):
 
 
 def card_lecture(F, pal):
-    return card(F, pal, art_calendar, '02', 'seu-lecture-cli',
+    return card(F, pal, 'ochre', ((560, 300), (196, 226), (-90, -30), 140, 110, 8), '02', 'seu-lecture-cli',
                 '东南大学讲座预约小工具，会先对一对你的课表。',
                 'An unofficial SEU lecture helper that checks your timetable.',
                 'Python', 'CLI · 非官方',
