@@ -17,7 +17,7 @@
 
 <br>
 
-## A few things I've made · 做过的一些东西
+## Projects · 兴趣作品
 
 <table>
   <tr>
@@ -25,7 +25,7 @@
       <a href="https://github.com/wynter-yaxley/agent-control-bridge">
         <img src="assets/project-bridge.svg" alt="Project 01 — agent-control-bridge" width="100%">
       </a>
-      <h3><a href="https://github.com/wynter-yaxley/agent-control-bridge">agent-control-bridge ↗</a></h3>
+      <h3><a href="https://github.com/wynter-yaxley/agent-control-bridge">agent-control-bridge</a></h3>
       <p>让 AI Agent 通过 MCP 使用桌面应用中的 ChatGPT 与 Codex 对话。</p>
       <p><sub>A bridge between AI agents and desktop conversations.</sub></p>
     </td>
@@ -33,7 +33,7 @@
       <a href="https://github.com/wynter-yaxley/seu-lecture-cli">
         <img src="assets/project-lecture.svg" alt="Project 02 — seu-lecture-cli" width="100%">
       </a>
-      <h3><a href="https://github.com/wynter-yaxley/seu-lecture-cli">seu-lecture-cli ↗</a></h3>
+      <h3><a href="https://github.com/wynter-yaxley/seu-lecture-cli">seu-lecture-cli</a></h3>
       <p>东南大学讲座预约小工具，支持课表冲突检查。非官方。</p>
       <p><sub>An unofficial SEU lecture CLI that checks your timetable.</sub></p>
     </td>
