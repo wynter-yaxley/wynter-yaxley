@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="270" viewBox="0 0 960 270" role="img" aria-labelledby="title desc">
+<title id="title">Wynter Yaxley — Follow curiosity. Make something.</title>
+<desc id="desc">An original cream and sage banner with abstract connected shapes.</desc>
+<defs>
+  <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FAF8F2"/><stop offset="1" stop-color="#F1F1E9"/></linearGradient>
+  <linearGradient id="peach" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F3CEB6"/><stop offset="1" stop-color="#EAB59C"/></linearGradient>
+  <clipPath id="clip"><rect x="1" y="1" width="958" height="268" rx="22"/></clipPath>
+  <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#516A5E" opacity=".10"/></pattern>
+</defs>
+<g clip-path="url(#clip)">
+  <rect width="960" height="270" fill="url(#paper)"/>
+  <rect x="663" width="297" height="270" fill="url(#dots)"/>
+  <circle cx="909" cy="219" r="155" fill="#DFE8DC"/>
+  <circle cx="825" cy="117" r="85" fill="none" stroke="#B9CBB9" stroke-width="1.5"/>
+  <circle cx="825" cy="117" r="61" fill="none" stroke="#B9CBB9" stroke-width="1" stroke-dasharray="3 7"/>
+  <path d="M690 219C701 143 807 210 825 117S929 32 974 88" fill="none" stroke="#5B7F6E" stroke-width="2"/>
+  <path d="M754 33L800 48L785 94L739 79Z" fill="url(#peach)" transform="rotate(11 770 63)"/>
+  <rect x="850" y="145" width="70" height="70" rx="17" fill="#6C8B77" transform="rotate(-13 885 180)"/>
+  <path d="M872 180h26m-13-13v26" stroke="#F8FAF5" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="825" cy="117" r="12" fill="#FAF8F2" stroke="#5B7F6E" stroke-width="2"/>
+  <circle cx="825" cy="117" r="3" fill="#5B7F6E"/>
+  <circle cx="690" cy="219" r="6" fill="#E7AD8F"/>
+  <path d="M912 48v16m-8-8h16" stroke="#78917D" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="48" y="54" fill="#617468" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="12" letter-spacing="2.8">A PERSONAL COLLECTION OF POSSIBILITIES</text>
+  <text x="45" y="137" fill="#243A32" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="72" font-weight="650" letter-spacing="-3">Wynter Yaxley</text>
+  <text x="49" y="184" fill="#4D685A" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="25">Follow curiosity. Make something.</text>
+  <circle cx="52" cy="232" r="3" fill="#7A9983"/>
+  <text x="65" y="237" fill="#7A8278" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="11.5" letter-spacing="1.2">IDEAS / EXPERIMENTS / THINGS I FELT LIKE MAKING</text>
+</g>
+<rect x=".75" y=".75" width="958.5" height="268.5" rx="22" fill="none" stroke="#DCDDD1" stroke-width="1.5"/>
+</svg>
