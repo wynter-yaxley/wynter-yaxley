@@ -40,6 +40,7 @@ DARK = dict(
     oat='#C9A23E', oat_dot='#DDB955', clay='#FF7A59', clay_soft='#FF8A6B',
     sky='#16808F', sky_dot='#1F97A8', slate='#6FCADB',
     moss='#7CC243', moss_dot='#93D65C',
+    swatch=.5,  # the stats swatches sit a step back, so the pale numbers on them stay legible
 )
 
 def num(v):
@@ -443,7 +444,8 @@ def stats_card(F, pal):
     for i, (key, cn, en, tone) in enumerate(METRICS):
         x = m + i * col
         body += [
-            printed(f'<rect x="{num(x)}" y="94" width="62" height="54" fill="{{fill}}"/>', pal, tone),
+            f'<g opacity="{pal.get("swatch", 1)}">'
+            + printed(f'<rect x="{num(x)}" y="94" width="62" height="54" fill="{{fill}}"/>', pal, tone) + '</g>',
             # EB Garamond's default old-style figures: uneven heights, an old English ledger
             text([(F['name'], f'{stats[key]:,}')], 66, x + 20, 150, pal['ink']),
             text([(F['cn'], cn)], 15, x, 186, pal['ink2'], track=0.08),
