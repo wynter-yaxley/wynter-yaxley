@@ -14,7 +14,9 @@ little moss as an accent; the colour fields are printed through a halftone scree
 shapes break out of the frames that are meant to hold them.
 """
 import argparse
+import datetime
 import hashlib
+import json
 import math
 import re
 from pathlib import Path
@@ -412,6 +414,42 @@ def card_lecture(F, pal):
                 shift=1)
 
 
+# ---------------------------------------------------------------- stats
+
+STATS = OUT / 'stats.json'
+METRICS = [('stars', '收获星标', 'STARS EARNED', 'sky'),
+           ('pull_requests', '拉取请求', 'PULL REQUESTS', 'oat'),
+           ('contributions', '近一年贡献', 'CONTRIBUTIONS · 1 YR', 'moss'),
+           ('repositories', '公开仓库', 'PUBLIC REPOS', 'oat')]
+
+
+def stats_card(F, pal):
+    """Four numbers, each breaking out of a small printed swatch, like the window above."""
+    stats = json.loads(STATS.read_text(encoding='utf-8'))
+    w, h, m = 1000, 248, 72
+    col = (w - 2 * m) / len(METRICS)
+    y, mo, d = (int(v) for v in stats['updated'].split('-'))
+    when_cn = f'每 6 小时刷新 · 最近变动 {y} 年 {mo} 月 {d} 日'
+    when_en = f'Refreshed every six hours · last changed {d} {datetime.date(y, mo, d):%B} {y}'
+    body = [
+        screens(pal),
+        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="18" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
+        text([(F['cn'], when_cn)], 12.5, w - m, 50, pal['ink3'], anchor='end', track=0.04),
+        text([(F['en_it'], when_en)], 13, w - m, 70, pal['ink3'], anchor='end'),
+    ]
+    for i, (key, cn, en, tone) in enumerate(METRICS):
+        x = m + i * col
+        body += [
+            printed(f'<rect x="{num(x)}" y="94" width="62" height="54" fill="{{fill}}"/>', pal, tone),
+            # EB Garamond's default old-style figures: uneven heights, an old English ledger
+            text([(F['name'], f'{stats[key]:,}')], 66, x + 20, 150, pal['ink']),
+            text([(F['cn'], cn)], 15, x, 186, pal['ink2'], track=0.08),
+            text([(F['label'], en)], 10.5, x, 208, pal['slate'], track=0.22),
+        ]
+    desc = '；'.join(f'{cn} {stats[key]:,}' for key, cn, en, tone in METRICS)
+    return svg(w, h, '\n'.join(body), '足迹 · On GitHub', f'{desc}。{when_cn}。{when_en}.')
+
+
 # ---------------------------------------------------------------- toolbox
 
 TOOLS = ['Python', 'TypeScript', 'Node.js', 'MCP', 'PowerShell', 'WSL']
@@ -444,7 +482,8 @@ def main():
     ebi = Font(args.fonts / 'EBGaramond-Italic.ttf')
     F = dict(cn=sans.at(400), en=sans.at(400), label=sans.at(500), title=sans.at(600),
              name=eb.at(500), name_it=ebi.at(500), en_it=ebi.at(400))
-    pages = dict(header=header, card_bridge=card_bridge, card_lecture=card_lecture, toolbox=toolbox)
+    pages = dict(header=header, card_bridge=card_bridge, card_lecture=card_lecture, stats=stats_card,
+                 toolbox=toolbox)
     OUT.mkdir(exist_ok=True)
     # the content hash goes into the file name: GitHub's raw links drop query strings
     # and its CDN caches by path, so a changed drawing must live at a new path

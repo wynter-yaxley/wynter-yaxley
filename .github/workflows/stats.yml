@@ -1,0 +1,65 @@
+name: Refresh stats
+
+# Redraws the stats card from public GitHub data and commits only when it changed.
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['tools/**', '.github/workflows/stats.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stats
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install 'fonttools>=4.50,<5'
+
+      - name: Restore fonts
+        id: fonts
+        uses: actions/cache@v4
+        with:
+          path: fonts
+          key: fonts-notosanssc-ebgaramond-v1
+
+      - name: Download fonts (SIL Open Font License)
+        if: steps.fonts.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p fonts
+          base=https://raw.githubusercontent.com/google/fonts/main/ofl
+          curl -fsSL -o fonts/NotoSansSC-VF.ttf      "$base/notosanssc/NotoSansSC%5Bwght%5D.ttf"
+          curl -fsSL -o fonts/EBGaramond.ttf         "$base/ebgaramond/EBGaramond%5Bwght%5D.ttf"
+          curl -fsSL -o fonts/EBGaramond-Italic.ttf  "$base/ebgaramond/EBGaramond-Italic%5Bwght%5D.ttf"
+
+      - name: Fetch numbers
+        run: python tools/stats.py
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Draw
+        run: python tools/render.py --fonts fonts
+
+      - name: Commit if anything changed
+        run: |
+          git add -A assets README.md
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m 'chore: refresh stats'
+          git push
