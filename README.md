@@ -16,8 +16,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/stats-dark.a472fa9a.svg">
-    <img src="assets/stats-light.102e1581.svg" width="100%" alt="收获星标、拉取请求、近一年贡献与公开仓库数，每 6 小时自动刷新。Stars, pull requests, contributions and public repositories, refreshed every six hours.">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/stats-dark.14e865b9.svg">
+    <img src="assets/stats-light.b31fedff.svg" width="100%" alt="收获星标、拉取请求、近一年贡献与公开仓库数，每 6 小时自动刷新。Stars, pull requests, contributions and public repositories, refreshed every six hours.">
   </picture>
 </p>
 
