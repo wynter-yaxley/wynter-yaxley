@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/header-dark.9703e79b.svg">
-    <img src="assets/header-light.3b343b49.svg" width="100%" alt="你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it — useful or not.">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/header-dark.96d4e045.svg">
+    <img src="assets/header-light.db3d87ba.svg" width="100%" alt="你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it — useful or not.">
   </picture>
 </p>
 

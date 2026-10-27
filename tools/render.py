@@ -307,10 +307,11 @@ def header(F, pal):
         text([(F['name'], 'Wynter')], 112, m - 6, 206, pal['ink']),
         text([(F['name_it'], 'Yaxley')], 112, step, 318, pal['ink']),
         text([(F['en'], '†')], 26, step + width([(F['name_it'], 'Yaxley')], 112) - 14, 242, pal['slate']),
-        text([(F['cn'], '兴之所至，')], 17, m, 254, pal['ink2'], track=0.1),
-        text([(F['cn'], '信手为之。')], 17, m, 280, pal['ink2'], track=0.1),
-        text([(F['en_it'], 'Made for the joy of it,')], 16, m, 308, pal['ink3']),
-        text([(F['en_it'], 'useful or not.')], 16, m, 328, pal['ink3']),
+        # the motto hangs about 20 below the descender of Wynter's y, not on it
+        text([(F['cn'], '兴之所至，')], 17, m, 272, pal['ink2'], track=0.1),
+        text([(F['cn'], '信手为之。')], 17, m, 298, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it,')], 16, m, 326, pal['ink3']),
+        text([(F['en_it'], 'useful or not.')], 16, m, 346, pal['ink3']),
         # the line: drawn inside, dotted once it has flown
         stroke('M' + points(flight[:exit_at + 1]), pal),
         f'<path d="M{points(flight[exit_at:])}" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
