@@ -33,11 +33,13 @@ LIGHT = dict(
     sky='#D3DFE4', slate='#7F97A6',
     moss='#C5CEB4', moss_dot='#B0BC9E', sky_dot='#BDCDD5', oat_dot='#D8CAB1',
 )
+# dark mode is fluorescent riso ink on black paper: the colour fields glow,
+# yet stay deep enough for the pale line drawn over them to read
 DARK = dict(
     paper='#1F1D1B', edge='#36312B', ink='#EEE8DE', ink2='#C0B7AA', ink3='#877E72',
-    oat='#3A342C', clay='#BE8669', clay_soft='#4B3A31',
-    sky='#26343B', slate='#86A0AF',
-    moss='#38432F', moss_dot='#46523C', sky_dot='#30414A', oat_dot='#443D33',
+    oat='#C9A23E', oat_dot='#DDB955', clay='#FF7A59', clay_soft='#FF8A6B',
+    sky='#16808F', sky_dot='#1F97A8', slate='#6FCADB',
+    moss='#7CC243', moss_dot='#93D65C',
 )
 
 def num(v):
