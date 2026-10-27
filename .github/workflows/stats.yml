@@ -20,7 +20,10 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
+      # always the newest main, so a re-run of an old run does not redraw a stale tree
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
 
       - uses: actions/setup-python@v5
         with:
@@ -62,4 +65,5 @@ jobs:
           git -c user.name='github-actions[bot]' \
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
               commit -m 'chore: refresh stats'
-          git push
+          # someone may have pushed while this ran: catch up once, then push
+          git push || { git pull --rebase && git push; }
