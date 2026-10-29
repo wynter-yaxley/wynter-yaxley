@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/header-mobile-dark.a94a5d56.svg">
-    <source media="(max-width: 600px)" srcset="assets/header-mobile-light.034dee17.svg">
+    <source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/header-mobile-dark.a4ed228e.svg">
+    <source media="(max-width: 600px)" srcset="assets/header-mobile-light.07eddae6.svg">
     <source media="(prefers-color-scheme: dark)" srcset="assets/header-dark.06a0a6b7.svg">
     <img src="assets/header-light.db3d87ba.svg" width="100%" alt="你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it — useful or not.">
   </picture>
@@ -14,7 +14,7 @@
      The phone sources spell "prefers-color-scheme:dark" without a space on purpose: GitHub's themed-picture
      script rewrites any media it recognises as a theme query, which would throw the width condition away. -->
 <p align="center">
-  <a href="https://github.com/wynter-yaxley/agent-control-bridge"><picture><source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/card-bridge-mobile-dark.3dc8ef00.svg" width="100%"><source media="(max-width: 600px)" srcset="assets/card-bridge-mobile-light.05d606ea.svg" width="100%"><source media="(prefers-color-scheme: dark)" srcset="assets/card-bridge-dark.e2e55ed9.svg"><img src="assets/card-bridge-light.1f104e0b.svg" width="49.8%" alt="agent-control-bridge：让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。Lets AI agents talk to ChatGPT and Codex on the desktop."></picture></a><a href="https://github.com/wynter-yaxley/seu-lecture-cli"><picture><source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/card-lecture-mobile-dark.8b48adf6.svg" width="100%"><source media="(max-width: 600px)" srcset="assets/card-lecture-mobile-light.f10f721f.svg" width="100%"><source media="(prefers-color-scheme: dark)" srcset="assets/card-lecture-dark.d32e6ba7.svg"><img src="assets/card-lecture-light.4151fa30.svg" width="49.8%" alt="seu-lecture-cli：东南大学讲座预约小工具（非官方），会先对一对你的课表。An unofficial SEU lecture helper that checks your timetable."></picture></a>
+  <a href="https://github.com/wynter-yaxley/agent-control-bridge"><picture><source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/card-bridge-mobile-dark.4dfe2ca3.svg" width="100%"><source media="(max-width: 600px)" srcset="assets/card-bridge-mobile-light.6e4a7fa5.svg" width="100%"><source media="(prefers-color-scheme: dark)" srcset="assets/card-bridge-dark.e2e55ed9.svg"><img src="assets/card-bridge-light.1f104e0b.svg" width="49.8%" alt="agent-control-bridge：让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。Lets AI agents talk to ChatGPT and Codex on the desktop."></picture></a><a href="https://github.com/wynter-yaxley/seu-lecture-cli"><picture><source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/card-lecture-mobile-dark.e6691d65.svg" width="100%"><source media="(max-width: 600px)" srcset="assets/card-lecture-mobile-light.18cb4d9a.svg" width="100%"><source media="(prefers-color-scheme: dark)" srcset="assets/card-lecture-dark.d32e6ba7.svg"><img src="assets/card-lecture-light.4151fa30.svg" width="49.8%" alt="seu-lecture-cli：东南大学讲座预约小工具（非官方），会先对一对你的课表。An unofficial SEU lecture helper that checks your timetable."></picture></a>
 </p>
 
 ### 足迹 · On GitHub

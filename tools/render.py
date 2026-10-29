@@ -337,14 +337,15 @@ def header(F, pal):
 
 def header_mobile(F, pal):
     """The same page stood upright for a phone: fewer columns, larger type, the bird still leaving."""
-    w, h, m = 540, 540, 40
-    wx, wy, ww, wh = 268, 92, 170, 150
+    w, h, m = 540, 500, 40
+    wx, wy, ww, wh = 268, 88, 170, 140
     placed, _ = shape([(F['name'], 'Wynter')], 100)
     step = m - 6 + next(gx for face, n, gx, k in placed if n == 't')
     # Yaxley fills the width here, so the bird climbs past its last letter rather than through it
-    flight = catmull_rom([(232, 412), (290, 404), (340, 388), (380, 366), (392, 340), (376, 326), (360, 342),
-                          (382, 366), (432, 370), (474, 350), (494, 306), (498, 246), (494, 176), (486, 112),
-                          (484, 66)])
+    # it sets off under the motto, so the lower left holds a line instead of a gap
+    flight = catmull_rom([(150, 374), (220, 380), (290, 372), (340, 356), (374, 332), (384, 306), (368, 292),
+                          (352, 308), (374, 332), (426, 340), (470, 318), (492, 276), (498, 216), (494, 156),
+                          (488, 104), (484, 66)])
     exit_at = next(i for i, (x, y) in enumerate(flight) if y < wy)
     body = [
         f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="18" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
@@ -352,30 +353,30 @@ def header_mobile(F, pal):
         printed(f'<rect x="{wx}" y="{wy}" width="{ww}" height="{wh}" fill="{{fill}}"/>', pal, 'sky'),
         f'<rect x="{wx + 12}" y="{wy - 12}" width="{ww}" height="{wh}" fill="none" stroke="{pal["slate"]}" '
         f'stroke-width="1.2"/>',
-        f'<circle cx="{wx + 104}" cy="{wy + 48}" r="20" fill="{pal["clay_soft"]}"/>',
-        f'<circle cx="{wx + 104}" cy="{wy + 48}" r="29" fill="none" stroke="{pal["clay"]}" stroke-width="1" '
+        f'<circle cx="{wx + 104}" cy="{wy + 46}" r="20" fill="{pal["clay_soft"]}"/>',
+        f'<circle cx="{wx + 104}" cy="{wy + 46}" r="29" fill="none" stroke="{pal["clay"]}" stroke-width="1" '
         f'stroke-dasharray="2 6" stroke-linecap="round"/>',
-        printed(f'<path d="{blob(wx + 150, wy + 150, 58, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" '
+        printed(f'<path d="{blob(wx + 150, wy + 140, 56, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" '
                 f'fill="{{fill}}"/>', pal, 'oat'),
-        printed(f'<circle cx="{wx + 142}" cy="{wy + 92}" r="9" fill="{{fill}}"/>', pal, 'moss'),
+        printed(f'<circle cx="{wx + 142}" cy="{wy + 88}" r="9" fill="{{fill}}"/>', pal, 'moss'),
         text([(F['cn'], '你好，我是')], 18, m, 62, pal['ink2'], track=0.14),
         text([(F['label'], 'MAKING THINGS · EST. 2022')], 11, wx + ww + 12, 62, pal['slate'], anchor='end', track=0.24),
-        text([(F['name'], 'Wynter')], 100, m - 6, 200, pal['ink']),
-        text([(F['name_it'], 'Yaxley')], 100, step, 300, pal['ink']),
-        text([(F['en'], '†')], 24, step + width([(F['name_it'], 'Yaxley')], 100) - 12, 232, pal['slate']),
-        text([(F['cn'], '兴之所至，')], 20, m, 250, pal['ink2'], track=0.1),
-        text([(F['cn'], '信手为之。')], 20, m, 280, pal['ink2'], track=0.1),
-        text([(F['en_it'], 'Made for the joy of it,')], 17.5, m, 318, pal['ink3']),
-        text([(F['en_it'], 'useful or not.')], 17.5, m, 340, pal['ink3']),
+        text([(F['name'], 'Wynter')], 100, m - 6, 172, pal['ink']),
+        text([(F['name_it'], 'Yaxley')], 100, step, 272, pal['ink']),
+        text([(F['en'], '†')], 24, step + width([(F['name_it'], 'Yaxley')], 100) - 12, 204, pal['slate']),
+        text([(F['cn'], '兴之所至，')], 20, m, 232, pal['ink2'], track=0.1),
+        text([(F['cn'], '信手为之。')], 20, m, 262, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it,')], 17.5, m, 296, pal['ink3']),
+        text([(F['en_it'], 'useful or not.')], 17.5, m, 318, pal['ink3']),
         stroke('M' + points(flight[:exit_at + 1]), pal),
         f'<path d="M{points(flight[exit_at:])}" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
         f'stroke-dasharray="1 7" stroke-linecap="round"/>',
         stroke(bird(492, 42, 14), pal, 2.2),
         f'<circle cx="{flight[0][0]:.1f}" cy="{flight[0][1]:.1f}" r="4.6" fill="{pal["clay"]}"/>',
-        f'<path d="M{m} 444h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
-        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 15, m, 472, pal['ink2'],
+        f'<path d="M{m} 404h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
+        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 15, m, 432, pal['ink2'],
              track=0.04),
-        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 15.5, m + 10, 498, pal['ink3']),
+        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 15.5, m + 10, 458, pal['ink3']),
     ]
     return svg(w, h, '\n'.join(body), 'Wynter Yaxley',
                '你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it, useful or not. '
@@ -421,7 +422,7 @@ def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift, mobile=Fals
     """cn and en may hold a line break, which only the phone layout keeps."""
     if mobile:
         # stacked one above the other on a phone, so wider type and no gutter
-        w, h, gutter, top, x0 = 540, 400, 0, 30, 36
+        w, h, gutter, top, x0 = 540, 360, 0, 30, 36
         size = dict(title=31, cn=19.5, en=16.5, meta=16)
         cn, en = cn.split('\n'), en.split('\n')
     else:
@@ -431,7 +432,8 @@ def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift, mobile=Fals
         cn, en = [cn.replace('\n', '')], [en.replace('\n', '')]
     for runs, sz in [([(F['cn'], s)], size['cn']) for s in cn] + [([(F['en'], s)], size['en']) for s in en]:
         fits(runs, sz, w - 2 * x0, runs[0][1])
-    y = 186 + (6 if mobile else 0)
+    # a phone card is wide enough for the title to tuck in under the window instead of far below it
+    y = 158 if mobile else 186
     lines = [text([(F['title'], repo)], size['title'], x0, y, pal['ink'])]
     for i, s in enumerate(cn):
         y += (40 if i == 0 else 30) + (4 if mobile and i == 0 else 0)
