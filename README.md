@@ -1,9 +1,9 @@
 <p align="center">
   <picture>
-    <source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/header-mobile-dark.a4ed228e.svg">
-    <source media="(max-width: 600px)" srcset="assets/header-mobile-light.07eddae6.svg">
-    <source media="(prefers-color-scheme: dark)" srcset="assets/header-dark.06a0a6b7.svg">
-    <img src="assets/header-light.db3d87ba.svg" width="100%" alt="你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it — useful or not.">
+    <source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/header-mobile-dark.b83b064d.svg">
+    <source media="(max-width: 600px)" srcset="assets/header-mobile-light.83ce6b1f.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/header-dark.353a568c.svg">
+    <img src="assets/header-light.a449d035.svg" width="100%" alt="你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it — useful or not.">
   </picture>
 </p>
 

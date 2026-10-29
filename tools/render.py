@@ -283,7 +283,7 @@ def bird(x, y, r):
 def header(F, pal):
     """Wynter: warm and cold at once, so a winter window with a low warm sun.
     Yaxley: an old English place, geac-leah, the cuckoo's clearing; a bird leaves it."""
-    w, h, m = 1000, 480, 72
+    w, h, m = 1000, 492, 72
     wx, wy, ww, wh = 548, 124, 366, 248
     # Yaxley starts where the t of Wynter does, so the step follows a letter, not a guess
     placed, _ = shape([(F['name'], 'Wynter')], 112)
@@ -311,11 +311,11 @@ def header(F, pal):
         text([(F['name'], 'Wynter')], 112, m - 6, 206, pal['ink']),
         text([(F['name_it'], 'Yaxley')], 112, step, 318, pal['ink']),
         text([(F['en'], '†')], 26, step + width([(F['name_it'], 'Yaxley')], 112) - 14, 242, pal['slate']),
-        # the motto hangs about 20 below the descender of Wynter's y, not on it
-        text([(F['cn'], '兴之所至，')], 17, m, 272, pal['ink2'], track=0.1),
-        text([(F['cn'], '信手为之。')], 17, m, 298, pal['ink2'], track=0.1),
-        text([(F['en_it'], 'Made for the joy of it,')], 16, m, 326, pal['ink3']),
-        text([(F['en_it'], 'useful or not.')], 16, m, 346, pal['ink3']),
+        # the motto hangs about two of its own cap heights below the descender of Wynter's y
+        text([(F['cn'], '兴之所至，')], 17, m, 286, pal['ink2'], track=0.1),
+        text([(F['cn'], '信手为之。')], 17, m, 312, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it,')], 16, m, 340, pal['ink3']),
+        text([(F['en_it'], 'useful or not.')], 16, m, 360, pal['ink3']),
         # the line: drawn inside, dotted once it has flown
         stroke('M' + points(flight[:exit_at + 1]), pal),
         f'<path d="M{points(flight[exit_at:])}" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
@@ -323,11 +323,11 @@ def header(F, pal):
         stroke(bird(898, 60, 16), pal, 2.2),
         f'<circle cx="{flight[0][0]:.1f}" cy="{flight[0][1]:.1f}" r="4.6" fill="{pal["clay"]}"/>',
         # a footnote, the way an old English gazetteer would give it
-        f'<path d="M{m} 388h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
-        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 13.5, m, 414, pal['ink2'],
+        f'<path d="M{m} 400h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
+        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 13.5, m, 426, pal['ink2'],
              track=0.04),
-        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 14, m + 9, 436, pal['ink3']),
-        text([(F['label'], 'MAKING THINGS · EST. 2022')], 10.5, wx + ww + 14, 436, pal['slate'],
+        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 14, m + 9, 448, pal['ink3']),
+        text([(F['label'], 'MAKING THINGS · EST. 2022')], 10.5, wx + ww + 14, 448, pal['slate'],
              anchor='end', track=0.24),
     ]
     return svg(w, h, '\n'.join(body), 'Wynter Yaxley',
@@ -364,10 +364,10 @@ def header_mobile(F, pal):
         text([(F['name'], 'Wynter')], 100, m - 6, 172, pal['ink']),
         text([(F['name_it'], 'Yaxley')], 100, step, 272, pal['ink']),
         text([(F['en'], '†')], 24, step + width([(F['name_it'], 'Yaxley')], 100) - 12, 204, pal['slate']),
-        text([(F['cn'], '兴之所至，')], 20, m, 232, pal['ink2'], track=0.1),
-        text([(F['cn'], '信手为之。')], 20, m, 262, pal['ink2'], track=0.1),
-        text([(F['en_it'], 'Made for the joy of it,')], 17.5, m, 296, pal['ink3']),
-        text([(F['en_it'], 'useful or not.')], 17.5, m, 318, pal['ink3']),
+        text([(F['cn'], '兴之所至，')], 20, m, 249, pal['ink2'], track=0.1),
+        text([(F['cn'], '信手为之。')], 20, m, 279, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it,')], 17.5, m, 313, pal['ink3']),
+        text([(F['en_it'], 'useful or not.')], 17.5, m, 335, pal['ink3']),
         stroke('M' + points(flight[:exit_at + 1]), pal),
         f'<path d="M{points(flight[exit_at:])}" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
         f'stroke-dasharray="1 7" stroke-linecap="round"/>',
