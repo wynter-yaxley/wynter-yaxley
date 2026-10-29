@@ -15,6 +15,7 @@ shapes break out of the frames that are meant to hold them.
 """
 import argparse
 import datetime
+import functools
 import hashlib
 import json
 import math
@@ -334,6 +335,53 @@ def header(F, pal):
                'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。From Old English gēac-lēah, the cuckoo’s clearing.')
 
 
+def header_mobile(F, pal):
+    """The same page stood upright for a phone: fewer columns, larger type, the bird still leaving."""
+    w, h, m = 540, 540, 40
+    wx, wy, ww, wh = 268, 92, 170, 150
+    placed, _ = shape([(F['name'], 'Wynter')], 100)
+    step = m - 6 + next(gx for face, n, gx, k in placed if n == 't')
+    # Yaxley fills the width here, so the bird climbs past its last letter rather than through it
+    flight = catmull_rom([(232, 412), (290, 404), (340, 388), (380, 366), (392, 340), (376, 326), (360, 342),
+                          (382, 366), (432, 370), (474, 350), (494, 306), (498, 246), (494, 176), (486, 112),
+                          (484, 66)])
+    exit_at = next(i for i, (x, y) in enumerate(flight) if y < wy)
+    body = [
+        f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="18" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
+        screens(pal),
+        printed(f'<rect x="{wx}" y="{wy}" width="{ww}" height="{wh}" fill="{{fill}}"/>', pal, 'sky'),
+        f'<rect x="{wx + 12}" y="{wy - 12}" width="{ww}" height="{wh}" fill="none" stroke="{pal["slate"]}" '
+        f'stroke-width="1.2"/>',
+        f'<circle cx="{wx + 104}" cy="{wy + 48}" r="20" fill="{pal["clay_soft"]}"/>',
+        f'<circle cx="{wx + 104}" cy="{wy + 48}" r="29" fill="none" stroke="{pal["clay"]}" stroke-width="1" '
+        f'stroke-dasharray="2 6" stroke-linecap="round"/>',
+        printed(f'<path d="{blob(wx + 150, wy + 150, 58, [1, .94, 1.04, .97, 1.03, .9, 1.05, .95], .3)}" '
+                f'fill="{{fill}}"/>', pal, 'oat'),
+        printed(f'<circle cx="{wx + 142}" cy="{wy + 92}" r="9" fill="{{fill}}"/>', pal, 'moss'),
+        text([(F['cn'], '你好，我是')], 18, m, 62, pal['ink2'], track=0.14),
+        text([(F['label'], 'MAKING THINGS · EST. 2022')], 11, wx + ww + 12, 62, pal['slate'], anchor='end', track=0.24),
+        text([(F['name'], 'Wynter')], 100, m - 6, 200, pal['ink']),
+        text([(F['name_it'], 'Yaxley')], 100, step, 300, pal['ink']),
+        text([(F['en'], '†')], 24, step + width([(F['name_it'], 'Yaxley')], 100) - 12, 232, pal['slate']),
+        text([(F['cn'], '兴之所至，')], 20, m, 250, pal['ink2'], track=0.1),
+        text([(F['cn'], '信手为之。')], 20, m, 280, pal['ink2'], track=0.1),
+        text([(F['en_it'], 'Made for the joy of it,')], 17.5, m, 318, pal['ink3']),
+        text([(F['en_it'], 'useful or not.')], 17.5, m, 340, pal['ink3']),
+        stroke('M' + points(flight[:exit_at + 1]), pal),
+        f'<path d="M{points(flight[exit_at:])}" fill="none" stroke="{pal["ink"]}" stroke-width="2" '
+        f'stroke-dasharray="1 7" stroke-linecap="round"/>',
+        stroke(bird(492, 42, 14), pal, 2.2),
+        f'<circle cx="{flight[0][0]:.1f}" cy="{flight[0][1]:.1f}" r="4.6" fill="{pal["clay"]}"/>',
+        f'<path d="M{m} 444h40" stroke="{pal["edge"]}" stroke-width="1.2"/>',
+        text([(F['en'], '† '), (F['cn'], 'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。')], 15, m, 472, pal['ink2'],
+             track=0.04),
+        text([(F['en_it'], 'from Old English gēac-lēah, the cuckoo’s clearing.')], 15.5, m + 10, 498, pal['ink3']),
+    ]
+    return svg(w, h, '\n'.join(body), 'Wynter Yaxley',
+               '你好，我是 Wynter Yaxley。兴之所至，信手为之。Made for the joy of it, useful or not. '
+               'Yaxley，英格兰古地名，意为“杜鹃的林间空地”。From Old English gēac-lēah, the cuckoo’s clearing.')
+
+
 # ---------------------------------------------------------------- cards
 
 def art_bridge(pal, x, y):
@@ -369,14 +417,32 @@ def art_calendar(pal, x, y):
     ]
 
 
-def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift):
-    # the gutter between the two cards is drawn into them, so the README needs no spacing
-    w, h, gutter, top = 500, 330, 10, 30
-    for runs, size, what in (([(F['cn'], cn)], 17, cn), ([(F['en'], en)], 14.5, en)):
-        fits(runs, size, w - 64, what)
-    tag_x = 48 + width([(F['label'], lang)], 14) + 16
-    ghost = text([(F['name'], number)], 150, w - 18, h + 34, 'none', anchor='end',
-                 attrs=f' stroke="{pal["slate"]}" stroke-width="1.1" opacity=".55"')
+def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift, mobile=False):
+    """cn and en may hold a line break, which only the phone layout keeps."""
+    if mobile:
+        # stacked one above the other on a phone, so wider type and no gutter
+        w, h, gutter, top, x0 = 540, 400, 0, 30, 36
+        size = dict(title=31, cn=19.5, en=16.5, meta=16)
+        cn, en = cn.split('\n'), en.split('\n')
+    else:
+        # the gutter between the two cards is drawn into them, so the README needs no spacing
+        w, h, gutter, top, x0 = 500, 330, 10, 30, 32
+        size = dict(title=27, cn=17, en=14.5, meta=14)
+        cn, en = [cn.replace('\n', '')], [en.replace('\n', '')]
+    for runs, sz in [([(F['cn'], s)], size['cn']) for s in cn] + [([(F['en'], s)], size['en']) for s in en]:
+        fits(runs, sz, w - 2 * x0, runs[0][1])
+    y = 186 + (6 if mobile else 0)
+    lines = [text([(F['title'], repo)], size['title'], x0, y, pal['ink'])]
+    for i, s in enumerate(cn):
+        y += (40 if i == 0 else 30) + (4 if mobile and i == 0 else 0)
+        lines.append(text([(F['cn'], s)], size['cn'], x0, y, pal['ink2'], track=0.03))
+    for i, s in enumerate(en):
+        y += (28 if i == 0 else 23) + (6 if mobile and i == 0 else 0)
+        lines.append(text([(F['en'], s)], size['en'], x0, y, pal['ink3']))
+    meta_y = h - 32
+    tag_x = x0 + 16 + width([(F['label'], lang)], size['meta']) + 16
+    ghost = text([(F['name'], number)], 180 if mobile else 150, w - 18, h + 34 * (1.2 if mobile else 1), 'none',
+                 anchor='end', attrs=f' stroke="{pal["slate"]}" stroke-width="1.1" opacity=".55"')
     body = [
         screens(pal),
         f'<g transform="translate({gutter * shift} 0)">',
@@ -387,35 +453,33 @@ def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift):
         '<g clip-path="url(#card)">' + ghost + '</g>',
         # the window rises out of the card's top edge
         *art(pal, w - 196, 0),
-        text([(F['label'], number)], 12, 32, top + 44, pal['slate'], track=0.24),
-        f'<path d="M58 {top + 40}h28" stroke="{pal["slate"]}" stroke-width="1.2"/>',
-        text([(F['title'], repo)], 27, 32, 186, pal['ink']),
-        text([(F['cn'], cn)], 17, 32, 226, pal['ink2'], track=0.03),
-        text([(F['en'], en)], 14.5, 32, 254, pal['ink3']),
-        f'<circle cx="37" cy="293" r="4.5" fill="{pal["clay"]}"/>',
-        text([(F['label'], lang)], 14, 48, 298, pal['ink2']),
-        text([(F['en'], tags)], 14, tag_x, 298, pal['ink3']),
+        text([(F['label'], number)], 12.5 if mobile else 12, x0, top + 44, pal['slate'], track=0.24),
+        f'<path d="M{x0 + 26 + (2 if mobile else 0)} {top + 40}h28" stroke="{pal["slate"]}" stroke-width="1.2"/>',
+        *lines,
+        f'<circle cx="{x0 + 5}" cy="{meta_y - 5}" r="4.5" fill="{pal["clay"]}"/>',
+        text([(F['label'], lang)], size['meta'], x0 + 16, meta_y, pal['ink2']),
+        text([(F['en'], tags)], size['meta'], tag_x, meta_y, pal['ink3']),
         '</g>',
     ]
     return svg(w + gutter, h, '\n'.join(body), repo, desc)
 
 
-def card_bridge(F, pal):
+def card_bridge(F, pal, mobile=False):
     return card(F, pal, art_bridge, '01', 'agent-control-bridge',
-                '让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。',
-                'Lets AI agents talk to ChatGPT and Codex on the desktop.',
+                '让 AI Agent 借 MCP 与桌面版 \nChatGPT、Codex 对话。',
+                'Lets AI agents talk to ChatGPT and Codex \non the desktop.',
                 'TypeScript', 'MCP · Windows',
                 '让 AI Agent 借 MCP 与桌面版 ChatGPT、Codex 对话。Lets AI agents talk to ChatGPT and Codex on the desktop.',
-                shift=0)
+                shift=0, mobile=mobile)
 
 
-def card_lecture(F, pal):
+def card_lecture(F, pal, mobile=False):
     return card(F, pal, art_calendar, '02', 'seu-lecture-cli',
-                '东南大学讲座预约小工具，会先对一对你的课表。',
-                'An unofficial SEU lecture helper that checks your timetable.',
+                '东南大学讲座预约小工具，\n会先对一对你的课表。',
+                'An unofficial SEU lecture helper \nthat checks your timetable.',
                 'Python', 'CLI · 非官方',
                 '东南大学讲座预约小工具（非官方），会先对一对你的课表。An unofficial SEU lecture helper that checks your timetable.',
-                shift=1)
+                shift=1, mobile=mobile)
 
 
 # ---------------------------------------------------------------- stats
@@ -427,29 +491,42 @@ METRICS = [('stars', '收获星标', 'STARS EARNED', 'sky'),
            ('repositories', '公开仓库', 'PUBLIC REPOS', 'oat')]
 
 
-def stats_card(F, pal):
-    """Four numbers, each breaking out of a small printed swatch, like the window above."""
+def stats_card(F, pal, mobile=False):
+    """Four numbers, each breaking out of a small printed swatch, like the window above.
+    On a phone they sit two by two, and the date moves under them."""
     stats = json.loads(STATS.read_text(encoding='utf-8'))
-    w, h, m = 1000, 248, 72
-    col = (w - 2 * m) / len(METRICS)
+    if mobile:
+        w, h, m, cols, row = 540, 460, 40, 2, 156
+        top, swatch, figure, cn_size, en_size = 48, (66, 58), 72, 18, 12
+        when_at = [(m, 400, 'start'), (m, 424, 'start')]
+    else:
+        w, h, m, cols, row = 1000, 248, 72, 4, 0
+        top, swatch, figure, cn_size, en_size = 94, (62, 54), 66, 15, 10.5
+        when_at = [(w - m, 50, 'end'), (w - m, 70, 'end')]
+    col = (w - 2 * m) / cols
     y, mo, d = (int(v) for v in stats['updated'].split('-'))
     when_cn = f'每 6 小时刷新 · 最近变动 {y} 年 {mo} 月 {d} 日'
     when_en = f'Refreshed every six hours · last changed {d} {datetime.date(y, mo, d):%B} {y}'
+    k = figure / 66
     body = [
         screens(pal),
         f'<rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="18" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
-        text([(F['cn'], when_cn)], 12.5, w - m, 50, pal['ink3'], anchor='end', track=0.04),
-        text([(F['en_it'], when_en)], 13, w - m, 70, pal['ink3'], anchor='end'),
+        text([(F['cn'], when_cn)], 14 if mobile else 12.5, *when_at[0][:2], pal['ink3'], anchor=when_at[0][2],
+             track=0.04),
+        text([(F['en_it'], when_en)], 14.5 if mobile else 13, *when_at[1][:2], pal['ink3'], anchor=when_at[1][2]),
     ]
+    if mobile:
+        body.append(f'<path d="M{m} 368h40" stroke="{pal["edge"]}" stroke-width="1.2"/>')
     for i, (key, cn, en, tone) in enumerate(METRICS):
-        x = m + i * col
+        x, y0 = m + i % cols * col, top + i // cols * row
         body += [
             f'<g opacity="{pal.get("swatch", 1)}">'
-            + printed(f'<rect x="{num(x)}" y="94" width="62" height="54" fill="{{fill}}"/>', pal, tone) + '</g>',
+            + printed(f'<rect x="{num(x)}" y="{y0}" width="{swatch[0]}" height="{swatch[1]}" fill="{{fill}}"/>',
+                      pal, tone) + '</g>',
             # EB Garamond's default old-style figures: uneven heights, an old English ledger
-            text([(F['name'], f'{stats[key]:,}')], 66, x + 20, 150, pal['ink']),
-            text([(F['cn'], cn)], 15, x, 186, pal['ink2'], track=0.08),
-            text([(F['label'], en)], 10.5, x, 208, pal['slate'], track=0.22),
+            text([(F['name'], f'{stats[key]:,}')], figure, x + 20 * k, y0 + 56 * k, pal['ink']),
+            text([(F['cn'], cn)], cn_size, x, y0 + 92 * k, pal['ink2'], track=0.08),
+            text([(F['label'], en)], en_size, x, y0 + 114 * k, pal['slate'], track=0.22),
         ]
     desc = '；'.join(f'{cn} {stats[key]:,}' for key, cn, en, tone in METRICS)
     return svg(w, h, '\n'.join(body), '足迹 · On GitHub', f'{desc}。{when_cn}。{when_en}.')
@@ -460,21 +537,23 @@ def stats_card(F, pal):
 TOOLS = ['Python', 'TypeScript', 'Node.js', 'MCP', 'PowerShell', 'WSL']
 
 
-def toolbox(F, pal):
-    """Pills on one line, warm and cool dots taking turns."""
-    w, h, pill, gap, size = 1000, 60, 40, 10, 15
-    widths = [width([(F['label'], name)], size) + 52 for name in TOOLS]
-    x, body = 1, []
+def toolbox(F, pal, mobile=False):
+    """Pills on one line, warm and cool dots taking turns; on a phone they wrap."""
+    w, pill, gap, size, pad = (540, 46, 12, 17, 56) if mobile else (1000, 40, 10, 15, 52)
+    widths = [width([(F['label'], name)], size) + pad for name in TOOLS]
+    x, y, body = 1, 10, []
     for i, (name, pw) in enumerate(zip(TOOLS, widths)):
-        y = (h - pill) / 2
+        if x + pw > w - 1:
+            x, y = 1, y + pill + gap
         body += [
             f'<rect x="{num(x + .5)}" y="{y + .5}" width="{num(pw - 1)}" height="{pill - 1}" '
             f'rx="{(pill - 1) / 2}" fill="{pal["paper"]}" stroke="{pal["edge"]}"/>',
-            f'<circle cx="{num(x + 20)}" cy="{y + pill / 2}" r="4" fill="{pal["clay" if i % 2 else "slate"]}"/>',
-            text([(F['label'], name)], size, x + 32, y + pill / 2 + 5.2, pal['ink2']),
+            f'<circle cx="{num(x + 20 + (pad - 52) / 4)}" cy="{y + pill / 2}" r="4" '
+            f'fill="{pal["clay" if i % 2 else "slate"]}"/>',
+            text([(F['label'], name)], size, x + 32 + (pad - 52) / 2, y + pill / 2 + size * .35, pal['ink2']),
         ]
         x += pw + gap
-    return svg(w, h, '\n'.join(body), '常用 · Toolbox', ' · '.join(TOOLS))
+    return svg(w, y + pill + 10, '\n'.join(body), '常用 · Toolbox', ' · '.join(TOOLS))
 
 
 def main():
@@ -489,6 +568,9 @@ def main():
              name=eb.at(500), name_it=ebi.at(500), en_it=ebi.at(400))
     pages = dict(header=header, card_bridge=card_bridge, card_lecture=card_lecture, stats=stats_card,
                  toolbox=toolbox)
+    # README swaps these in below 600px: a phone shows a 1000-wide drawing at a third of its size
+    pages.update({f'{name}_mobile': functools.partial(draw, mobile=True)
+                  for name, draw in pages.items() if name != 'header'}, header_mobile=header_mobile)
     OUT.mkdir(exist_ok=True)
     # the content hash goes into the file name: GitHub's raw links drop query strings
     # and its CDN caches by path, so a changed drawing must live at a new path
