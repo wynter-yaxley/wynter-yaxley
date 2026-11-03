@@ -418,7 +418,55 @@ def art_calendar(pal, x, y):
     ]
 
 
-def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift, mobile=False):
+def art_glass(pal, x, y, k=1.0):
+    """A window seen through glass: a floating bar and a widget, each bending what lies behind it."""
+    W, H = 150 * k, 112 * k
+    # the sun sits low, half behind the bar, so the glass visibly lifts and enlarges it
+    sun = (x + .5 * W, y + .78 * H, .2 * H)
+    pw, ph = .9 * W, .28 * H
+    bar = (x - .22 * W, y + H - .55 * ph, pw, ph, ph / 2)
+    s = .3 * W
+    widget = (x + W - .62 * s, y + .14 * H, s, s, .26 * s)
+
+    def scene():
+        return (printed(f'<rect x="{num(x)}" y="{num(y)}" width="{num(W)}" height="{num(H)}" fill="{{fill}}"/>',
+                        pal, 'sky')
+                + f'<circle cx="{num(sun[0])}" cy="{num(sun[1])}" r="{num(sun[2])}" fill="{pal["clay_soft"]}"/>')
+
+    def glass(name, bx, by, bw, bh, r, lens=1.6):
+        # behind the glass the same scene, magnified about the pane's centre: the window edge bends
+        cx, cy = bx + bw / 2, by + bh / 2
+        rect = f'x="{num(bx)}" y="{num(by)}" width="{num(bw)}" height="{num(bh)}" rx="{num(r)}"'
+        return [
+            f'<clipPath id="{name}"><rect {rect}/></clipPath>',
+            f'<rect {rect} fill="{pal["paper"]}"/>',
+            f'<g clip-path="url(#{name})"><g transform="translate({num(cx)} {num(cy)}) scale({lens}) '
+            f'translate({num(-cx)} {num(-cy)})">{scene()}</g></g>',
+            f'<rect {rect} fill="{pal["paper"]}" fill-opacity=".12" stroke="{pal["ink"]}" stroke-width="2.2"/>',
+        ]
+
+    bx, by, bw, bh, _ = bar
+    icons = []
+    # the icons swell towards the pointer, the way a dock does
+    for i, g in enumerate((.72, .88, 1.18, .88, .72)):
+        cx, r = bx + bw * (i + 1) / 6, .075 * H * g
+        icons.append(f'<rect x="{num(cx - r)}" y="{num(by + bh / 2 - r)}" width="{num(2 * r)}" height="{num(2 * r)}" '
+                     f'rx="{num(r * .45)}" fill="none" stroke="{pal["ink"]}" stroke-width="1.6"/>')
+    ring = (widget[0] + s / 2, widget[1] + s / 2, .26 * s)
+    return [
+        scene(),
+        *glass('widget', *widget, lens=1.3),
+        f'<circle cx="{num(ring[0])}" cy="{num(ring[1])}" r="{num(ring[2])}" fill="none" stroke="{pal["slate"]}" '
+        f'stroke-width="2.4" stroke-dasharray="{num(ring[2] * 4.6)} 99" stroke-linecap="round" '
+        f'transform="rotate(-90 {num(ring[0])} {num(ring[1])})"/>',
+        *glass('bar', *bar),
+        *icons,
+        f'<circle cx="{num(bx + bw / 2)}" cy="{num(by + bh - 3.4 * min(k, 1.2))}" r="{num(2.2 * min(k, 1.3))}" '
+        f'fill="{pal["clay"]}"/>',
+    ]
+
+
+def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift=0, mobile=False, wide=False):
     """cn and en may hold a line break, which only the phone layout keeps."""
     if mobile:
         # stacked one above the other on a phone, so wider type and no gutter
@@ -427,7 +475,8 @@ def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift, mobile=Fals
         cn, en = cn.split('\n'), en.split('\n')
     else:
         # the gutter between the two cards is drawn into them, so the README needs no spacing
-        w, h, gutter, top, x0 = 500, 330, 10, 30, 32
+        # a wide card spans both columns: 1020 wide at 99.6% shows at the same scale as a pair of 510s
+        w, h, gutter, top, x0 = (1020, 330, 0, 30, 32) if wide else (500, 330, 10, 30, 32)
         size = dict(title=27, cn=17, en=14.5, meta=14)
         cn, en = [cn.replace('\n', '')], [en.replace('\n', '')]
     for runs, sz in [([(F['cn'], s)], size['cn']) for s in cn] + [([(F['en'], s)], size['en']) for s in en]:
@@ -454,7 +503,7 @@ def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift, mobile=Fals
         # a numeral too large for the card, cut off by its edge
         '<g clip-path="url(#card)">' + ghost + '</g>',
         # the window rises out of the card's top edge
-        *art(pal, w - 196, 0),
+        *art(pal, w - (300 if wide else 196), 0),
         text([(F['label'], number)], 12.5 if mobile else 12, x0, top + 44, pal['slate'], track=0.24),
         f'<path d="M{x0 + 26 + (2 if mobile else 0)} {top + 40}h28" stroke="{pal["slate"]}" stroke-width="1.2"/>',
         *lines,
@@ -466,8 +515,18 @@ def card(F, pal, art, number, repo, cn, en, lang, tags, desc, shift, mobile=Fals
     return svg(w + gutter, h, '\n'.join(body), repo, desc)
 
 
+def card_atrium(F, pal, mobile=False):
+    return card(F, pal, art_glass if mobile else functools.partial(art_glass, k=1.5), '01', 'atrium-desktop',
+                'Windows 11 上的原生玻璃桌面：\n悬浮任务栏与桌面小组件，实时折射。',
+                'A native glass desktop for Windows 11: \na taskbar and widgets that refract live.',
+                'C++', 'Direct3D 11 · Win32',
+                'Windows 11 上的原生玻璃桌面：悬浮任务栏与桌面小组件，实时折射。'
+                'A native glass desktop for Windows 11: a floating taskbar and widgets that refract in real time.',
+                mobile=mobile, wide=not mobile)
+
+
 def card_bridge(F, pal, mobile=False):
-    return card(F, pal, art_bridge, '01', 'agent-control-bridge',
+    return card(F, pal, art_bridge, '02', 'agent-control-bridge',
                 '让 AI Agent 借 MCP 与桌面版 \nChatGPT、Codex 对话。',
                 'Lets AI agents talk to ChatGPT and Codex \non the desktop.',
                 'TypeScript', 'MCP · Windows',
@@ -476,7 +535,7 @@ def card_bridge(F, pal, mobile=False):
 
 
 def card_lecture(F, pal, mobile=False):
-    return card(F, pal, art_calendar, '02', 'seu-lecture-cli',
+    return card(F, pal, art_calendar, '03', 'seu-lecture-cli',
                 '东南大学讲座预约小工具，\n会先对一对你的课表。',
                 'An unofficial SEU lecture helper \nthat checks your timetable.',
                 'Python', 'CLI · 非官方',
@@ -568,7 +627,7 @@ def main():
     ebi = Font(args.fonts / 'EBGaramond-Italic.ttf')
     F = dict(cn=sans.at(400), en=sans.at(400), label=sans.at(500), title=sans.at(600),
              name=eb.at(500), name_it=ebi.at(500), en_it=ebi.at(400))
-    pages = dict(header=header, card_bridge=card_bridge, card_lecture=card_lecture, stats=stats_card,
+    pages = dict(header=header, card_atrium=card_atrium, card_bridge=card_bridge, card_lecture=card_lecture, stats=stats_card,
                  toolbox=toolbox)
     # README swaps these in below 600px: a phone shows a 1000-wide drawing at a third of its size
     pages.update({f'{name}_mobile': functools.partial(draw, mobile=True)
