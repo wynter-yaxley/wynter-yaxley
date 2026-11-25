@@ -25,10 +25,10 @@
 
 <p align="center">
   <picture>
-    <source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/stats-mobile-dark.0cd90ac4.svg">
-    <source media="(max-width: 600px)" srcset="assets/stats-mobile-light.c911edf5.svg">
-    <source media="(prefers-color-scheme: dark)" srcset="assets/stats-dark.207fa560.svg">
-    <img src="assets/stats-light.2553cb94.svg" width="100%" alt="收获星标、拉取请求、近一年贡献与公开仓库数，每 6 小时自动刷新。Stars, pull requests, contributions and public repositories, refreshed every six hours.">
+    <source media="(max-width: 600px) and (prefers-color-scheme:dark)" srcset="assets/stats-mobile-dark.fe4e54eb.svg">
+    <source media="(max-width: 600px)" srcset="assets/stats-mobile-light.897c52a9.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/stats-dark.6e60e248.svg">
+    <img src="assets/stats-light.18d029d1.svg" width="100%" alt="收获星标、拉取请求、近一年贡献与公开仓库数，每 6 小时自动刷新。Stars, pull requests, contributions and public repositories, refreshed every six hours.">
   </picture>
 </p>
 
